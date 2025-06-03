@@ -1,6 +1,6 @@
 # BildMind – LernenWorte (Public MVP)
 
-This repository contains the **public MVP module** of the BuildMind project  
+This repository contains the **public MVP module** of the BuildMind project
 focused on language vocabulary learning via AI-powered spaced repetition and testing tools.
 
 ## Full documentation available in:

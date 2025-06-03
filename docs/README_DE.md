@@ -1,7 +1,7 @@
 # Bildmind-lernenworte – Vokabellernen mit KI
 
-Dieses Repository enthält das **öffentliche Modul** des Projekts **BuildMind**,  
-das für das **effiziente Erlernen von Fremdsprachenvokabular**  
+Dieses Repository enthält das **öffentliche Modul** des Projekts **BuildMind**,
+das für das **effiziente Erlernen von Fremdsprachenvokabular**
 mithilfe eines adaptiven Wiederholungssystems, Beispielen, Tests und Statistiken entwickelt wurde.
 
 ---
@@ -67,29 +67,29 @@ cd BuildMind-LernenWorte
 ```
 ## 👤 Autor
 
-Dieses Projekt wurde initiiert und wird gepflegt von:  
+Dieses Projekt wurde initiiert und wird gepflegt von:
 Dmytro Movchan | bildmind.com
 
 ## 📜 Lizenz
 
-Dieses Repository steht unter der Lizenz Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0).  
+Dieses Repository steht unter der Lizenz Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0).
 Sie dürfen:
 
-- den Code einsehen und zu Lernzwecken verwenden  
-- ihn in nicht-kommerziellen Projekten nutzen  
+- den Code einsehen und zu Lernzwecken verwenden
+- ihn in nicht-kommerziellen Projekten nutzen
 - das Original weitergeben, sofern die Urheberschaft angegeben wird
 
 ## ❗️Verboten:
 
-- die Nutzung des Codes für kommerzielle Zwecke ohne schriftliche Genehmigung des Autors  
+- die Nutzung des Codes für kommerzielle Zwecke ohne schriftliche Genehmigung des Autors
 - Änderungen oder Ableitungen dieses Codes zu erstellen
 
 ## 💡 Besondere Bedingung
 
-Alle Rechte an diesem Code liegen bei Dmytro Movchan.  
+Alle Rechte an diesem Code liegen bei Dmytro Movchan.
 Die Nutzung dieses öffentlichen Codes in kommerziellen Produkten ist ausschließlich möglich:
 
-- im Rahmen einer Zusammenarbeit mit dem Autor  
+- im Rahmen einer Zusammenarbeit mit dem Autor
 - oder auf Grundlage einer offiziellen Vereinbarung mit einer gemeinnützigen Organisation (Verein), die eine Lizenz von Dmytro Movchan erhält.
 
 Trigger test — 2025-06-02 20:00
