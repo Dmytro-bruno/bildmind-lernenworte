@@ -1,5 +1,7 @@
-from sqlalchemy import (Boolean, Column, DateTime, Integer, String,
-                        UniqueConstraint, func)
+import uuid
+
+from sqlalchemy import Boolean, Column, DateTime, String, UniqueConstraint, func
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from open.db.base import Base
@@ -7,7 +9,13 @@ from open.db.base import Base
 
 class User(Base):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        unique=True,
+        nullable=False,
+    )
     email = Column(String(255), unique=True, nullable=False, index=True)
     username = Column(String(150), unique=True, nullable=False, index=True)
     hashed_password = Column(String(255), nullable=False)
@@ -18,9 +26,7 @@ class User(Base):
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
     # Взаємозв'язки з іншими моделями (додаєш коли реалізуєш ті моделі)
-    user_words = relationship(
-        "UserWord", back_populates="user", cascade="all, delete-orphan"
-    )
+    user_words = relationship("UserWord", back_populates="user", cascade="all, delete-orphan")
     settings = relationship(
         "UserSettings",
         uselist=False,
@@ -39,11 +45,10 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
-    test_sessions = relationship(
-        "TestSession", back_populates="user", cascade="all, delete-orphan"
-    )
-    gpt_logs = relationship(
-        "GPTLog", back_populates="user", cascade="all, delete-orphan"
+    test_sessions = relationship("TestSession", back_populates="user", cascade="all, delete-orphan")
+    gpt_logs = relationship("GPTLog", back_populates="user", cascade="all, delete-orphan")
+    token_blacklist = relationship(
+        "TokenBlacklist", back_populates="user", cascade="all, delete-orphan"
     )
 
     __table_args__ = (
@@ -52,8 +57,4 @@ class User(Base):
     )
 
     def __repr__(self):
-        return (
-            f"<User(id={self.id}, "
-            f"email={self.email}, "
-            f"username={self.username}>"
-        )
+        return f"<User(id={self.id}, " f"email={self.email}, " f"username={self.username}>"

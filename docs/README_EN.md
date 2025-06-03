@@ -1,7 +1,7 @@
 # Bildmind-LernenWorte – Vocabulary Learning through AI
 
-This repository contains the **public module** of the **BuildMind** project,  
-designed for **efficient foreign language vocabulary learning**  
+This repository contains the **public module** of the **BuildMind** project,
+designed for **efficient foreign language vocabulary learning**
 through an adaptive system of spaced repetition, examples, tests, and statistics.
 
 ---
@@ -67,7 +67,7 @@ cd BuildMind-LernenWorte
 ```
 ## 👤 Author
 
-Project initiated and maintained by:  
+Project initiated and maintained by:
 **Dmytro Movchan | [bildmind.com](https://bildmind.com)**
 
 ## 📜 License
@@ -81,15 +81,15 @@ You are free to:
 
 ## ❗️Prohibited:
 
-- Using the code for **commercial purposes** without **written permission** from the author  
+- Using the code for **commercial purposes** without **written permission** from the author
 - Modifying or creating derivative works based on this code
 
 ## 💡 Special Condition
 
-All legal rights to this code are retained by **Dmytro Movchan**.  
+All legal rights to this code are retained by **Dmytro Movchan**.
 Use of this public code in **commercial products** is only permitted under the following conditions:
 
-- As part of **direct collaboration** with the author,  
+- As part of **direct collaboration** with the author,
 - Or through an **official agreement** with a **non-profit organization (Verein)** that has been granted a license by Dmytro Movchan.
 
 Trigger test — 2025-05-31 22:45

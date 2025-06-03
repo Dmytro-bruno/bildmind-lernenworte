@@ -24,5 +24,5 @@ Eine kommerzielle Nutzung ist nur gestattet:
 
 ## 🔗 Vollständiger Lizenztext
 
-Die vollständige, offizielle Lizenz ist einsehbar unter:  
+Die vollständige, offizielle Lizenz ist einsehbar unter:
 [https://creativecommons.org/licenses/by-nc-nd/4.0/deed.de](https://creativecommons.org/licenses/by-nc-nd/4.0/deed.de)
