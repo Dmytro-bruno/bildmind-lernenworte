@@ -4,7 +4,7 @@ from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, UniqueCons
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from open.db.base import Base
+from db.base import Base
 
 
 class UserSettings(Base):
