@@ -4,7 +4,7 @@ from sqlalchemy import Column, DateTime, String, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from open.db.base import Base
+from db.base import Base
 
 
 class Word(Base):
