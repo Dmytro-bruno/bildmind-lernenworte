@@ -4,11 +4,11 @@ from sqlalchemy import Column, DateTime, ForeignKey, Integer, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from db.base import Base
+from openapi.db.base import Base
 
 
 class GPTLog(Base):
-    __tablename__ = "gpt_logs"
+    __tablename__ = "gpt_log"
 
     id = Column(
         UUID(as_uuid=True),

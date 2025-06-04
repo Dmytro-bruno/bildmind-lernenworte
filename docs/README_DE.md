@@ -32,7 +32,6 @@ Das Modul `LernenWorte` (Wortlernen) implementiert ein MVP-System für:
 - `schemas/` — Pydantic-Schemas für Anfragen und Antworten
 - `database.py` — Datenbankverbindung
 - `init_data.py` — Initialdaten
-- `deps/` — Abhängigkeiten für Endpunkte (z. B. aktueller Benutzer, Sicherheit)
 - `sdk/` — SDK oder Client-Interface für mobile Anwendungen
 
 ---

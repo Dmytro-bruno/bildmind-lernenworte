@@ -5,6 +5,6 @@ app = FastAPI(title="Bildmind Public API")
 app.include_router(health.router)
 
 
-@app.get("/open")
+@app.get("/openapi")
 def open_root():
     return {"message": "Публічний інтерфейс"}

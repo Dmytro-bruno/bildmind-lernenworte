@@ -32,7 +32,6 @@ The `LernenWorte` module implements an MVP system for:
 - `schemas/` — Pydantic request/response schemas
 - `database.py` — DB connection logic
 - `init_data.py` — initial data loader
-- `deps/` — endpoint dependencies (current user, auth)
 - `sdk/` — SDK/client interface for mobile applications
 
 ---
