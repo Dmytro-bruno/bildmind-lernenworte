@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str
     DEBUG: bool = True
     ENVIRONMENT: str = "development"
+    DATABASE_URL: str = ""
 
     class Config:
         env_file = ".env"

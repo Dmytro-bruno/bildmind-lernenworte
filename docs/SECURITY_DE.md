@@ -1,4 +1,4 @@
-# Sicherheitspolitik 
+# Sicherheitspolitik
 
 
 Wir legen großen Wert auf die Sicherheit unserer Nutzer und den Schutz ihrer persönlichen Daten. Wenn Sie eine Schwachstelle entdecken oder Bedenken hinsichtlich des Datenschutzes in diesem Projekt haben, bitten wir Sie, uns so schnell wie möglich zu informieren.
