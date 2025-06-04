@@ -11,17 +11,17 @@ from sqlalchemy import engine_from_config, pool
 # Тільки тепер: модифікуємо sys.path і одразу імпортуємо свої моделі
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-import db.models.daily_progress  # noqa: F401
-import db.models.gpt_logs  # noqa: F401
-import db.models.level_progress  # noqa: F401
-import db.models.test_session  # noqa: F401
-import db.models.token_blacklist  # noqa: F401
-import db.models.user  # noqa: F401
-import db.models.user_settings  # noqa: F401
-import db.models.user_stats  # noqa: F401
-import db.models.user_word  # noqa: F401
-import db.models.word  # noqa: F401
-from db.base import Base
+import openapi.db.models.daily_progress  # noqa: F401
+import openapi.db.models.gpt_logs  # noqa: F401
+import openapi.db.models.level_progress  # noqa: F401
+import openapi.db.models.test_session  # noqa: F401
+import openapi.db.models.token_blacklist  # noqa: F401
+import openapi.db.models.user  # noqa: F401
+import openapi.db.models.user_settings  # noqa: F401
+import openapi.db.models.user_stats  # noqa: F401
+import openapi.db.models.user_word  # noqa: F401
+import openapi.db.models.word  # noqa: F401
+from openapi.db.base import Base
 
 config = context.config
 
