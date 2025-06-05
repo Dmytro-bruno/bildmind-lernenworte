@@ -1,17 +1,17 @@
+from __future__ import annotations
+
 from typing import Optional
 
 from pydantic import BaseModel
 
-from .user import UserRead
-from .word import WordRead
-
 
 class GptLogsBase(BaseModel):
-    user: Optional["UserRead"] = None
-    word: Optional["WordRead"] = None
+    # твої поля
+    user: Optional["UserRead"] = None  # type: ignore[name-defined] # noqa: F821
+    word: Optional["WordRead"] = None  # type: ignore[name-defined] # noqa: F821
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class GptLogsCreate(GptLogsBase):

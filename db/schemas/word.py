@@ -1,17 +1,17 @@
+from __future__ import annotations
+
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
-
-from .gpt_logs import GptLogsRead
-from .user_word import UserWordRead
+from pydantic import BaseModel
 
 
 class WordBase(BaseModel):
-    user_words: Optional[List[UserWordRead]] = Field(default_factory=list)
-    gpt_logs: Optional[List[GptLogsRead]] = Field(default_factory=list)
+    # твої поля
+    user_words: Optional[List["UserWordRead"]] = None  # type: ignore[name-defined] # noqa: F821
+    gpt_logs: Optional[List["GptLogsRead"]] = None  # type: ignore[name-defined] # noqa: F821
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class WordCreate(WordBase):

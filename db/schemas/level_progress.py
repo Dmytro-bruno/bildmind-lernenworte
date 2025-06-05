@@ -1,15 +1,16 @@
+from __future__ import annotations
+
 from typing import Optional
 
 from pydantic import BaseModel
 
-from .user import UserRead
-
 
 class LevelProgressBase(BaseModel):
-    user: Optional["UserRead"] = None
+    # твої поля
+    user: Optional["UserRead"] = None  # type: ignore[name-defined] # noqa: F821
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class LevelProgressCreate(LevelProgressBase):

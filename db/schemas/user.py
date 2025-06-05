@@ -1,29 +1,25 @@
+from __future__ import annotations
+
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
-
-from .daily_progress import DailyProgressRead
-from .gpt_logs import GptLogsRead
-from .level_progress import LevelProgressRead
-from .test_session import TestSessionRead
-from .token_blacklist import TokenBlacklistRead
-from .user_settings import UserSettingsRead
-from .user_stats import UserStatsRead
-from .user_word import UserWordRead
+from pydantic import BaseModel
 
 
 class UserBase(BaseModel):
-    user_words: Optional[List[UserWordRead]] = Field(default_factory=list)
-    settings: Optional[UserSettingsRead] = None
-    level_progress: List[LevelProgressRead] = Field(default_factory=list)
-    daily_progress: List[DailyProgressRead] = Field(default_factory=list)
-    stats: Optional[UserStatsRead] = None
-    test_sessions: List[TestSessionRead] = Field(default_factory=list)
-    gpt_logs: List[GptLogsRead] = Field(default_factory=list)
-    token_blacklist: List[TokenBlacklistRead] = Field(default_factory=list)
+    ...
+    daily_progress: Optional[List["DailyProgressRead"]] = None  # type: ignore[name-defined] # noqa: F821, E501
+    level_progress: Optional[List["LevelProgressRead"]] = None  # type: ignore[name-defined] # noqa: F821, E501
+    user_words: Optional[List["UserWordRead"]] = None  # type: ignore[name-defined] # noqa: F821, E501
+    user_settings: Optional["UserSettingsRead"] = None  # type: ignore[name-defined] # noqa: F821, E501
+    user_stats: Optional["UserStatsRead"] = None  # type: ignore[name-defined] # noqa: F821, E501
+    test_sessions: Optional[List["TestSessionRead"]] = None  # type: ignore[name-defined] # noqa: F821, E501
+    gpt_logs: Optional[List["GptLogsRead"]] = None  # type: ignore[name-defined] # noqa: F821, E501
+    token_blacklist: Optional[List["TokenBlacklistRead"]] = None  # type: ignore[name-defined] # noqa: F821, E501
+
+    ...
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class UserCreate(UserBase):

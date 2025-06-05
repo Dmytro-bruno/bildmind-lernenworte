@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-from config.settings import settings
+from openapi.config.settings import settings
 
 # Формуємо URL для підключення до БД
 SQLALCHEMY_DATABASE_URL = (
