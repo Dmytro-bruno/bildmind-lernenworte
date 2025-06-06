@@ -12,7 +12,7 @@ venv/
 .vscode/
 
 # Environment variables
-openapi/.env
+../.env
 
 # Pytest cache
 .pytest_cache/

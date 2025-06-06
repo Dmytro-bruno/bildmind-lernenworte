@@ -1,4 +1,8 @@
+import os
+
 from pydantic_settings import BaseSettings
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 class Settings(BaseSettings):
@@ -13,10 +17,17 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str
     DEBUG: bool = True
     ENVIRONMENT: str = "development"
-    DATABASE_URL: str = ""
 
     class Config:
-        env_file = ".env"
+        env_file = os.path.join(BASE_DIR, ".env")
+
+    @property
+    def DATABASE_URL(self) -> str:
+        return (
+            f"postgresql+psycopg2://{self.POSTGRES_USER}:"
+            f"{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:"
+            f"{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        )
 
 
 settings = Settings()

@@ -6,7 +6,7 @@ services:
     container_name: bildmind-db
     restart: always
     env_file:
-      - .env
+      - ../.env
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -25,7 +25,7 @@ services:
     volumes:
       - .:/app
     env_file:
-      - .env
+      - ../.env
     depends_on:
       - db
     ports:
