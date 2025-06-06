@@ -14,9 +14,18 @@ from openapi.api.routers import (
     word_router,
 )
 
-app = FastAPI(title="Bildmind Public API")
+app = FastAPI(
+    title="Bildmind Public API",
+    description="API для відкритого модуля навчання платформи Bildmind.",
+    version="0.1.0",
+    servers=[{"url": "http://localhost:8000", "description": "Локальний сервер розробки"}],
+    license_info={
+        "name": "CC BY-NC-ND 4.0",
+        "url": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+    },
+)
 
-# Підключаємо всі роутери
+# Підключення роутерів
 app.include_router(health.router)
 app.include_router(daily_progress_router.router)
 app.include_router(gpt_logs_router.router)
