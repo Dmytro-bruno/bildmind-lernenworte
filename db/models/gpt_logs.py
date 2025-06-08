@@ -8,7 +8,7 @@ from openapi.db.base import Base
 
 
 class GPTLog(Base):
-    __tablename__ = "gpt_log"
+    __tablename__ = "gpt_logs"
 
     id = Column(
         UUID(as_uuid=True),
