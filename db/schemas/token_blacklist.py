@@ -1,33 +1,52 @@
-from __future__ import annotations
-
+from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, constr
 
 
 class TokenBlacklistBase(BaseModel):
-    # твої поля
-    user: Optional["UserRead"] = None  # type: ignore[name-defined] # noqa: F821
+    """
+    Базова схема для внесення JWT у чорний список (Token Blacklist).
+    """
 
-    class Config:
-        from_attributes = True
+    jti: constr(min_length=8, max_length=128) = Field(
+        ..., description="Унікальний ідентифікатор JWT (jti)"
+    )
+    expired_at: datetime = Field(..., description="Час, до якого токен заблоковано (UTC)")
+    reason: Optional[constr(max_length=100)] = Field(
+        None, description="Причина блокування токена (опціонально)"
+    )
 
 
 class TokenBlacklistCreate(TokenBlacklistBase):
+    """
+    Схема для додавання токена у чорний список.
+    user_id визначається із токена автентифікації.
+    """
+
     pass
 
 
-class TokenBlacklistUpdate(TokenBlacklistBase):
-    pass
+class TokenBlacklistUpdate(BaseModel):
+    """
+    Схема для оновлення запису у чорному списку (якщо це потрібно).
+    """
+
+    expired_at: Optional[datetime] = Field(None, description="Оновлений час блокування")
+    reason: Optional[constr(max_length=100)] = Field(
+        None, description="Оновлена причина блокування токена"
+    )
 
 
 class TokenBlacklistRead(TokenBlacklistBase):
-    pass
+    """
+    Схема для читання запису з чорного списку (API-відповідь).
+    """
 
+    id: UUID = Field(..., description="Унікальний ідентифікатор запису")
+    user_id: UUID = Field(..., description="ID користувача, якому належить токен")
+    created_at: datetime = Field(..., description="Час додавання токена у чорний список (UTC)")
 
-__all__ = [
-    "TokenBlacklistBase",
-    "TokenBlacklistCreate",
-    "TokenBlacklistUpdate",
-    "TokenBlacklistRead",
-]
+    class Config:
+        orm_mode = True

@@ -31,3 +31,5 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+print(">>> POSTGRES_HOST:", settings.POSTGRES_HOST)
