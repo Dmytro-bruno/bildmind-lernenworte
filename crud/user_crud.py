@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID
 
@@ -78,7 +78,7 @@ def update_user(db: Session, user: User, user_in: UserUpdate) -> User:
 
 def delete_user(db: Session, user: User) -> User:
     """М'яке видалення користувача: проставляє дату видалення."""
-    user.deleted_at = datetime.utcnow()
+    user.deleted_at = datetime.now(timezone.utc)
     db.add(user)
     db.commit()
     db.refresh(user)

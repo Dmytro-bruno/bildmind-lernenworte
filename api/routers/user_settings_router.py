@@ -1,62 +1,80 @@
-from typing import List
-
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from openapi.api.routers.dependencies import get_current_user, get_db
 from openapi.crud.user_settings_crud import UserSettingsCRUD
+from openapi.db.models.user import User
 from openapi.db.schemas.user_settings import (
     UserSettingsCreate,
     UserSettingsRead,
     UserSettingsUpdate,
 )
 
-router = APIRouter(prefix="/user_settingss", tags=["UserSettings"])
+router = APIRouter(
+    prefix="/user-settings",
+    tags=["User Settings"],
+    responses={404: {"description": "Not found"}},
+)
 
 
-@router.get("/", response_model=List[UserSettingsRead])
-def read_all(
-    skip: int = 0,
-    limit: int = 100,
+@router.get(
+    "", response_model=UserSettingsRead, summary="Отримати налаштування поточного користувача"
+)
+def get_user_settings(
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    return UserSettingsCRUD.get_all(db, skip=skip, limit=limit)
+    """
+    Повертає налаштування лише для поточного користувача.
+    """
+    settings = UserSettingsCRUD.get_by_user(db, user_id=current_user.id)
+    if not settings:
+        raise HTTPException(status_code=404, detail="Налаштування не знайдено")
+    return settings
 
 
-@router.post("/", response_model=UserSettingsRead)
-def create(
-    obj_in: UserSettingsCreate,
+@router.post(
+    "",
+    response_model=UserSettingsRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Створити налаштування для поточного користувача",
+)
+def create_user_settings(
+    data: UserSettingsCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    return UserSettingsCRUD.create(db, obj_in)
+    """
+    Створює налаштування лише для поточного користувача.
+    """
+    return UserSettingsCRUD.create(db, user_id=current_user.id, obj_in=data)
 
 
-@router.get("/{id}", response_model=UserSettingsRead)
-def read_one(id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    obj = UserSettingsCRUD.get(db, id)
-    if not obj:
-        raise HTTPException(status_code=404, detail="Not found")
-    return obj
-
-
-@router.put("/{id}", response_model=UserSettingsRead)
-def update(
-    id: str,
-    obj_in: UserSettingsUpdate,
+@router.patch(
+    "", response_model=UserSettingsRead, summary="Оновити налаштування поточного користувача"
+)
+def update_user_settings(
+    data: UserSettingsUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    db_obj = UserSettingsCRUD.get(db, id)
-    if not db_obj:
-        raise HTTPException(status_code=404, detail="Not found")
-    return UserSettingsCRUD.update(db, db_obj, obj_in)
+    """
+    Оновлює налаштування лише для поточного користувача.
+    """
+    return UserSettingsCRUD.update(db, user_id=current_user.id, obj_in=data)
 
 
-@router.delete("/{id}", response_model=UserSettingsRead)
-def delete(id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    db_obj = UserSettingsCRUD.get(db, id)
-    if not db_obj:
-        raise HTTPException(status_code=404, detail="Not found")
-    return UserSettingsCRUD.delete(db, db_obj)
+@router.delete(
+    "",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Видалити (soft) налаштування поточного користувача",
+)
+def delete_user_settings(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    М'яко видаляє налаштування лише для поточного користувача.
+    """
+    UserSettingsCRUD.soft_delete(db, user_id=current_user.id)
+    return None
