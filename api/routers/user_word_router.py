@@ -1,56 +1,93 @@
 from typing import List
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from openapi.api.routers.dependencies import get_current_user, get_db
 from openapi.crud.user_word_crud import UserWordCRUD
+from openapi.db.models.user import User
 from openapi.db.schemas.user_word import UserWordCreate, UserWordRead, UserWordUpdate
 
-router = APIRouter(prefix="/user_words", tags=["UserWord"])
+router = APIRouter(
+    prefix="/user-words",
+    tags=["User Words"],
+    responses={404: {"description": "Not found"}},
+)
 
 
-@router.get("/", response_model=List[UserWordRead])
-def read_all(
-    skip: int = 0,
-    limit: int = 100,
+@router.post(
+    "",
+    response_model=UserWordRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Додати слово у словник користувача",
+)
+def create_user_word(
+    data: UserWordCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    return UserWordCRUD.get_all(db, skip=skip, limit=limit)
+    """
+    Додає нове слово до словника поточного користувача.
+    """
+    return UserWordCRUD.create(db, user_id=current_user.id, obj_in=data)
 
 
-@router.post("/", response_model=UserWordRead)
-def create(
-    obj_in: UserWordCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)
-):
-    return UserWordCRUD.create(db, obj_in)
-
-
-@router.get("/{id}", response_model=UserWordRead)
-def read_one(id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    obj = UserWordCRUD.get(db, id)
-    if not obj:
-        raise HTTPException(status_code=404, detail="Not found")
-    return obj
-
-
-@router.put("/{id}", response_model=UserWordRead)
-def update(
-    id: str,
-    obj_in: UserWordUpdate,
+@router.get(
+    "", response_model=List[UserWordRead], summary="Отримати всі слова зі словника користувача"
+)
+def list_user_words(
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    db_obj = UserWordCRUD.get(db, id)
-    if not db_obj:
-        raise HTTPException(status_code=404, detail="Not found")
-    return UserWordCRUD.update(db, db_obj, obj_in)
+    """
+    Повертає всі слова зі словника поточного користувача.
+    """
+    return UserWordCRUD.get_all(db, user_id=current_user.id)
 
 
-@router.delete("/{id}", response_model=UserWordRead)
-def delete(id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    db_obj = UserWordCRUD.get(db, id)
-    if not db_obj:
-        raise HTTPException(status_code=404, detail="Not found")
-    return UserWordCRUD.delete(db, db_obj)
+@router.get(
+    "/{user_word_id}", response_model=UserWordRead, summary="Отримати слово зі словника за id"
+)
+def get_user_word(
+    user_word_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Повертає слово зі словника за id (user_word_id).
+    """
+    user_word = UserWordCRUD.get_by_id(db, user_id=current_user.id, user_word_id=user_word_id)
+    if not user_word:
+        raise HTTPException(status_code=404, detail="Слово не знайдено")
+    return user_word
+
+
+@router.patch("/{user_word_id}", response_model=UserWordRead, summary="Оновити слово зі словника")
+def update_user_word(
+    user_word_id: UUID,
+    data: UserWordUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Оновлює слово зі словника поточного користувача.
+    """
+    return UserWordCRUD.update(db, user_id=current_user.id, user_word_id=user_word_id, obj_in=data)
+
+
+@router.delete(
+    "/{user_word_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Видалити слово зі словника (soft-delete)",
+)
+def delete_user_word(
+    user_word_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    М'яко видаляє слово зі словника поточного користувача.
+    """
+    UserWordCRUD.soft_delete(db, user_id=current_user.id, user_word_id=user_word_id)
+    return None

@@ -1,62 +1,102 @@
 from typing import List
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from openapi.api.routers.dependencies import get_current_user, get_db
 from openapi.crud.token_blacklist_crud import TokenBlacklistCRUD
+from openapi.db.models.user import User
 from openapi.db.schemas.token_blacklist import (
     TokenBlacklistCreate,
     TokenBlacklistRead,
     TokenBlacklistUpdate,
 )
 
-router = APIRouter(prefix="/token_blacklists", tags=["TokenBlacklist"])
+router = APIRouter(
+    prefix="/token-blacklist",
+    tags=["Token Blacklist"],
+    responses={404: {"description": "Not found"}},
+)
 
 
-@router.get("/", response_model=List[TokenBlacklistRead])
-def read_all(
-    skip: int = 0,
-    limit: int = 100,
+@router.post(
+    "",
+    response_model=TokenBlacklistRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Додати токен у чорний список",
+)
+def create_token_blacklist(
+    data: TokenBlacklistCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    return TokenBlacklistCRUD.get_all(db, skip=skip, limit=limit)
+    """
+    Додає токен у чорний список для поточного користувача.
+    """
+    return TokenBlacklistCRUD.create(db, user_id=current_user.id, obj_in=data)
 
 
-@router.post("/", response_model=TokenBlacklistRead)
-def create(
-    obj_in: TokenBlacklistCreate,
+@router.get(
+    "/{blacklist_id}",
+    response_model=TokenBlacklistRead,
+    summary="Отримати запис з чорного списку за id",
+)
+def get_token_blacklist(
+    blacklist_id: UUID,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    return TokenBlacklistCRUD.create(db, obj_in)
+    """
+    Повертає запис з чорного списку поточного користувача.
+    """
+    return TokenBlacklistCRUD.get(db, blacklist_id=blacklist_id, user_id=current_user.id)
 
 
-@router.get("/{id}", response_model=TokenBlacklistRead)
-def read_one(id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    obj = TokenBlacklistCRUD.get(db, id)
-    if not obj:
-        raise HTTPException(status_code=404, detail="Not found")
-    return obj
-
-
-@router.put("/{id}", response_model=TokenBlacklistRead)
-def update(
-    id: str,
-    obj_in: TokenBlacklistUpdate,
+@router.get(
+    "",
+    response_model=List[TokenBlacklistRead],
+    summary="Отримати всі записи чорного списку користувача",
+)
+def list_token_blacklist(
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    db_obj = TokenBlacklistCRUD.get(db, id)
-    if not db_obj:
-        raise HTTPException(status_code=404, detail="Not found")
-    return TokenBlacklistCRUD.update(db, db_obj, obj_in)
+    """
+    Повертає список усіх записів чорного списку користувача.
+    """
+    return TokenBlacklistCRUD.get_all(db, user_id=current_user.id)
 
 
-@router.delete("/{id}", response_model=TokenBlacklistRead)
-def delete(id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    db_obj = TokenBlacklistCRUD.get(db, id)
-    if not db_obj:
-        raise HTTPException(status_code=404, detail="Not found")
-    return TokenBlacklistCRUD.delete(db, db_obj)
+@router.patch(
+    "/{blacklist_id}", response_model=TokenBlacklistRead, summary="Оновити запис чорного списку"
+)
+def update_token_blacklist(
+    blacklist_id: UUID,
+    data: TokenBlacklistUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Оновлює запис чорного списку.
+    """
+    return TokenBlacklistCRUD.update(
+        db, blacklist_id=blacklist_id, user_id=current_user.id, obj_in=data
+    )
+
+
+@router.delete(
+    "/{blacklist_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Видалити запис чорного списку",
+)
+def delete_token_blacklist(
+    blacklist_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Видаляє запис чорного списку (повністю).
+    """
+    TokenBlacklistCRUD.delete(db, blacklist_id=blacklist_id, user_id=current_user.id)
+    return None
