@@ -16,3 +16,5 @@ mypy
 openai
 psycopg2-binary
 pydantic-settings
+pydantic[email]
+email-validator
