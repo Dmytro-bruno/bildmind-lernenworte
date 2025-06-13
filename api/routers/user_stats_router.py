@@ -1,56 +1,72 @@
-from typing import List
-
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from openapi.api.routers.dependencies import get_current_user, get_db
 from openapi.crud.user_stats_crud import UserStatsCRUD
+from openapi.db.models.user import User
 from openapi.db.schemas.user_stats import UserStatsCreate, UserStatsRead, UserStatsUpdate
 
-router = APIRouter(prefix="/user_statss", tags=["UserStats"])
+router = APIRouter(
+    prefix="/user-stats",
+    tags=["User Stats"],
+    responses={404: {"description": "Not found"}},
+)
 
 
-@router.get("/", response_model=List[UserStatsRead])
-def read_all(
-    skip: int = 0,
-    limit: int = 100,
+@router.get("", response_model=UserStatsRead, summary="Отримати статистику поточного користувача")
+def get_user_stats(
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    return UserStatsCRUD.get_all(db, skip=skip, limit=limit)
+    """
+    Повертає статистику лише для поточного користувача.
+    """
+    stats = UserStatsCRUD.get_by_user(db, user_id=current_user.id)
+    if not stats:
+        raise HTTPException(status_code=404, detail="Статистика не знайдена")
+    return stats
 
 
-@router.post("/", response_model=UserStatsRead)
-def create(
-    obj_in: UserStatsCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)
-):
-    return UserStatsCRUD.create(db, obj_in)
-
-
-@router.get("/{id}", response_model=UserStatsRead)
-def read_one(id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    obj = UserStatsCRUD.get(db, id)
-    if not obj:
-        raise HTTPException(status_code=404, detail="Not found")
-    return obj
-
-
-@router.put("/{id}", response_model=UserStatsRead)
-def update(
-    id: str,
-    obj_in: UserStatsUpdate,
+@router.post(
+    "",
+    response_model=UserStatsRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Створити статистику для поточного користувача",
+)
+def create_user_stats(
+    data: UserStatsCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    db_obj = UserStatsCRUD.get(db, id)
-    if not db_obj:
-        raise HTTPException(status_code=404, detail="Not found")
-    return UserStatsCRUD.update(db, db_obj, obj_in)
+    """
+    Створює статистику лише для поточного користувача.
+    """
+    return UserStatsCRUD.create(db, user_id=current_user.id, obj_in=data)
 
 
-@router.delete("/{id}", response_model=UserStatsRead)
-def delete(id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    db_obj = UserStatsCRUD.get(db, id)
-    if not db_obj:
-        raise HTTPException(status_code=404, detail="Not found")
-    return UserStatsCRUD.delete(db, db_obj)
+@router.patch("", response_model=UserStatsRead, summary="Оновити статистику поточного користувача")
+def update_user_stats(
+    data: UserStatsUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Оновлює статистику лише для поточного користувача.
+    """
+    return UserStatsCRUD.update(db, user_id=current_user.id, obj_in=data)
+
+
+@router.delete(
+    "",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Видалити (soft) статистику поточного користувача",
+)
+def delete_user_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    М'яко видаляє статистику лише для поточного користувача.
+    """
+    UserStatsCRUD.soft_delete(db, user_id=current_user.id)
+    return None
