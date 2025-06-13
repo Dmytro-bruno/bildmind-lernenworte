@@ -3,7 +3,9 @@ from fastapi import FastAPI
 from openapi.api.routers.auth import router as auth_router
 from openapi.api.routers.daily_progress_router import router as daily_progress_router
 from openapi.api.routers.gpt_logs_router import router as gpt_logs_router
+from openapi.api.routers.health import router as health
 from openapi.api.routers.level_progress_router import router as level_progress_router
+from openapi.api.routers.ping import router as ping_router
 from openapi.api.routers.test_session_router import router as test_session_router
 from openapi.api.routers.token_blacklist_router import router as token_blacklist_router
 from openapi.api.routers.user_router import router as user_router
@@ -35,6 +37,8 @@ app.include_router(user_settings_router)
 app.include_router(user_stats_router)
 app.include_router(user_word_router)
 app.include_router(word_router)
+app.include_router(health)
+app.include_router(ping_router)
 
 
 @app.get("/openapi")
