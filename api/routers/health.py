@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from openapi.db.database import SessionLocal
 
-router = APIRouter()
+router = APIRouter(tags=["Monitoring"])
 
 
 def get_db():
@@ -15,7 +15,7 @@ def get_db():
         db.close()
 
 
-@router.get("/healthcheck")
+@router.get("/healthcheck", summary="Перевірка стану БД")
 async def healthcheck(db: Session = Depends(get_db)):
     try:
         db.execute(text("SELECT 1"))
