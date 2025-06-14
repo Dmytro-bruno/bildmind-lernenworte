@@ -3,6 +3,11 @@
 This repository contains the **public MVP module** of the BuildMind project
 focused on language vocabulary learning via AI-powered spaced repetition and testing tools.
 
+> **Important notice:**
+> The business logic (core algorithms, AI services, and main orchestration) is available only in the private repository.
+> This public version contains only stubs and API interfaces for compatibility, demonstration, and open collaboration.
+
+
 ## Full documentation available in:
 - [README_UA.md](docs/README_UA.md) – Ukrainian
 - [README_EN.md](docs/README_EN.md) – English
