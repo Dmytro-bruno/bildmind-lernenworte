@@ -13,21 +13,24 @@ class WordBase(BaseModel):
     base_form: constr(min_length=1, max_length=255) = Field(
         ..., description="Початкова форма слова (без артикля)"
     )
-    article: Optional[constr(max_length=10)] = Field(
-        None, description="Артикль (напр., 'der', 'die', 'das')"
-    )
-    base_and_article: constr(min_length=1, max_length=255) = Field(
-        ..., description="Форма слова з артиклем"
-    )
-    translation: constr(min_length=1, max_length=255) = Field(..., description="Переклад слова")
     lang_from: constr(min_length=2, max_length=10) = Field(
         ..., description="Мова оригіналу (ISO-код, напр. 'de', 'en')"
     )
     lang_to: constr(min_length=2, max_length=10) = Field(
         ..., description="Мова перекладу (ISO-код, напр. 'uk', 'en')"
     )
+    # Поля нижче — опціональні, генеруються GPT і не обов'язкові для користувача:
+    article: Optional[constr(max_length=10)] = Field(
+        None, description="Артикль (напр., 'der', 'die', 'das') — генерується GPT"
+    )
+    base_and_article: Optional[constr(max_length=255)] = Field(
+        None, description="Форма слова з артиклем — генерується GPT"
+    )
+    translation: Optional[constr(max_length=255)] = Field(
+        None, description="Переклад слова — генерується GPT"
+    )
     example: Optional[constr(max_length=512)] = Field(
-        None, description="Приклад вживання слова (опціонально)"
+        None, description="Приклад вживання слова — генерується GPT"
     )
 
 
@@ -48,7 +51,7 @@ class WordUpdate(BaseModel):
         None, description="Оновлена початкова форма слова"
     )
     article: Optional[constr(max_length=10)] = Field(None, description="Оновлений артикль")
-    base_and_article: Optional[constr(min_length=1, max_length=255)] = Field(
+    base_and_article: Optional[constr(max_length=255)] = Field(
         None, description="Оновлена форма слова з артиклем"
     )
     translation: Optional[constr(min_length=1, max_length=255)] = Field(

@@ -18,13 +18,22 @@ class WordCRUD:
 
     @staticmethod
     def create(db: Session, obj_in: WordCreate) -> Word:
-        """
-        Додати нове слово у словник.
-        """
+        print(
+            f"[CRUD] Create Word: base_form={obj_in.base_form},"
+            f" lang_from={obj_in.lang_from}, lang_to={obj_in.lang_to}"
+        )
+        # === Гарантуємо коректність поля base_and_article ===
+        base_and_article = obj_in.base_and_article
+        if not base_and_article or base_and_article.strip() == "":
+            if obj_in.article and obj_in.article.strip():
+                base_and_article = f"{obj_in.article.strip()} {obj_in.base_form.strip()}"
+            else:
+                base_and_article = obj_in.base_form.strip()
+
         db_obj = Word(
-            base_form=obj_in.base_form,
+            base_form=obj_in.base_form.strip().lower(),  # normalize to lowercase
             article=obj_in.article,
-            base_and_article=obj_in.base_and_article,
+            base_and_article=base_and_article,
             translation=obj_in.translation,
             lang_from=obj_in.lang_from,
             lang_to=obj_in.lang_to,
@@ -36,7 +45,9 @@ class WordCRUD:
         try:
             db.commit()
             db.refresh(db_obj)
-        except IntegrityError:
+            print(f"[CRUD] Word created in DB: {db_obj.id}")
+        except IntegrityError as e:
+            print(f"[CRUD] IntegrityError: {str(e)}")
             db.rollback()
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -51,6 +62,24 @@ class WordCRUD:
         """
         stmt = select(Word).where(
             Word.id == word_id,
+            Word.deleted_at.is_(None),
+        )
+        return db.execute(stmt).scalar_one_or_none()
+
+    @staticmethod
+    def get_by_fields(
+        db: Session,
+        base_form: str,
+        lang_from: str,
+        lang_to: str,
+    ) -> Optional[Word]:
+        """
+        Повертає слово по унікальному набору base_form + lang_from + lang_to (не видалене).
+        """
+        stmt = select(Word).where(
+            Word.base_form == base_form.strip().lower(),  # normalize for search!
+            Word.lang_from == lang_from,
+            Word.lang_to == lang_to,
             Word.deleted_at.is_(None),
         )
         return db.execute(stmt).scalar_one_or_none()

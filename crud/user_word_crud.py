@@ -18,6 +18,8 @@ class UserWordCRUD:
 
     @staticmethod
     def create(db: Session, user_id: UUID, obj_in: UserWordCreate) -> UserWord:
+        print(f"[CRUD] Create UserWord: user_id={user_id}, word_id={obj_in.word_id}")
+
         """
         Додати слово у словник користувача.
         """
@@ -28,7 +30,9 @@ class UserWordCRUD:
             UserWord.deleted_at.is_(None),
         )
         existing = db.execute(stmt).scalar_one_or_none()
+        print(f"[CRUD] Existing user_word: {existing}")
         if existing:
+            print("[CRUD] Duplicated UserWord found, raising 409")
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT, detail="Слово вже є у словнику користувача."
             )
@@ -50,7 +54,9 @@ class UserWordCRUD:
         try:
             db.commit()
             db.refresh(db_obj)
-        except IntegrityError:
+            print(f"[CRUD] UserWord created in DB: {db_obj.id}")
+        except IntegrityError as e:
+            print(f"[CRUD] IntegrityError: {str(e)}")
             db.rollback()
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT, detail="Конфлікт під час додавання слова."
