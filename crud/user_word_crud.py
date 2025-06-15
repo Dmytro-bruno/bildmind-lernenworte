@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import Any, List, Optional
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -141,3 +141,22 @@ class UserWordCRUD:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Слово не знайдено.")
         db_obj.deleted_at = datetime.now(timezone.utc)
         db.commit()
+
+    @staticmethod
+    def get_all_for_user(db: Session, user_id: UUID, order_by: Optional[list[Any]] = None) -> list:
+        """
+        Повертає всі слова користувача з можливістю сортування за списком order_by.
+        """
+        q = db.query(UserWord).filter(
+            UserWord.user_id == user_id,
+            UserWord.deleted_at.is_(None),
+        )
+        if order_by:
+            for ob in order_by:
+                if ob == "created_at ASC":
+                    q = q.order_by(UserWord.created_at.asc())
+                elif ob == "next_review_date ASC NULLS FIRST":
+                    q = q.order_by(UserWord.next_review_date.asc().nullsfirst())
+                elif ob == "is_learned ASC":
+                    q = q.order_by(UserWord.is_learned.asc())
+        return q.all()
