@@ -13,7 +13,7 @@ class TestSessionBase(BaseModel):
     start_time: datetime = Field(..., description="Час початку тестової сесії (UTC)")
     end_time: datetime = Field(..., description="Час завершення тестової сесії (UTC)")
     words_total: conint(ge=1) = Field(
-        ..., description="Загальна кількість слів у тесті (невід’ємне число, мінімум 1)"
+        ..., description="Загальна кількість слів у тесті (мінімум 1)"
     )
     correct: conint(ge=0) = Field(
         ..., description="Кількість правильних відповідей (невід’ємне число)"
@@ -29,7 +29,7 @@ class TestSessionCreate(TestSessionBase):
     user_id визначається із токена автентифікації.
     """
 
-    pass
+    user_id: UUID = Field(..., description="ID користувача, якому належить сесія")
 
 
 class TestSessionUpdate(BaseModel):

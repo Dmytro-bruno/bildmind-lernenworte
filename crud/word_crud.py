@@ -99,6 +99,10 @@ class WordCRUD:
         return db.execute(stmt).scalars().all()
 
     @staticmethod
+    def get_by_ids(db: Session, ids: list) -> list:
+        return db.query(Word).filter(Word.id.in_(ids)).all()
+
+    @staticmethod
     def update(db: Session, word_id: UUID, obj_in: WordUpdate) -> Word:
         """
         Оновити слово у словнику (partial update).
