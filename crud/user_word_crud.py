@@ -19,23 +19,36 @@ class UserWordCRUD:
     @staticmethod
     def create(db: Session, user_id: UUID, obj_in: UserWordCreate) -> UserWord:
         print(f"[CRUD] Create UserWord: user_id={user_id}, word_id={obj_in.word_id}")
-
-        """
-        Додати слово у словник користувача.
-        """
-        # Не дозволяємо дублікати word_id+user_id серед не видалених
-        stmt = select(UserWord).where(
+        # 1. Шукаємо існуючий не видалений зв’язок
+        stmt_active = select(UserWord).where(
             UserWord.user_id == user_id,
             UserWord.word_id == obj_in.word_id,
             UserWord.deleted_at.is_(None),
         )
-        existing = db.execute(stmt).scalar_one_or_none()
-        print(f"[CRUD] Existing user_word: {existing}")
+        existing = db.execute(stmt_active).scalar_one_or_none()
         if existing:
             print("[CRUD] Duplicated UserWord found, raising 409")
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT, detail="Слово вже є у словнику користувача."
             )
+        # 2. Шукаємо soft-deleted зв’язок
+        stmt_deleted = select(UserWord).where(
+            UserWord.user_id == user_id,
+            UserWord.word_id == obj_in.word_id,
+            UserWord.deleted_at.isnot(None),
+        )
+        deleted = db.execute(stmt_deleted).scalar_one_or_none()
+        if deleted:
+            print("[CRUD] Restoring soft-deleted UserWord...")
+            deleted.deleted_at = None
+            # Можеш оновити created_at/updated_at — за бажанням:
+            # deleted.created_at = datetime.now(timezone.utc)
+            deleted.updated_at = datetime.now(timezone.utc)
+            db.commit()
+            db.refresh(deleted)
+            return deleted
+
+        # 3. Немає жодного зв’язку — створюємо новий:
         db_obj = UserWord(
             user_id=user_id,
             word_id=obj_in.word_id,
