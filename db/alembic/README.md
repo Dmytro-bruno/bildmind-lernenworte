@@ -32,3 +32,15 @@ alembic current
 INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
 INFO  [alembic.runtime.migration] Will assume transactional DDL.
 <revision_id> (head)
+# Якщо потрібно ВИПРАВИТИ тільки-но створену (невдалу) міграцію:
+Відкрий відповідний міграційний файл у openapi/db/alembic/versions/ і внеси зміни (наприклад, додай server_default='0').
+
+Відкоти цю міграцію:
+
+alembic downgrade <revision_id_попередньої_міграції>
+або, якщо це остання міграція:
+
+alembic downgrade -1
+Потім знову застосуй:
+
+alembic upgrade head

@@ -24,6 +24,7 @@ class LevelProgressCRUD:
             user_id=user_id,
             word_level=obj_in.word_level,
             words_learned=obj_in.words_learned,
+            words_total=obj_in.words_total,
             accuracy=obj_in.accuracy,
             last_interaction=obj_in.last_interaction or datetime.now(timezone.utc),
             created_at=datetime.now(timezone.utc),

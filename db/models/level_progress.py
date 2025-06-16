@@ -24,6 +24,7 @@ class LevelProgress(Base):
     )
     word_level = Column(String(8), nullable=False)  # "A1", "B2", "C2"...
     words_learned = Column(Integer, default=0, nullable=False)
+    words_total = Column(Integer, default=0, nullable=False)
     accuracy = Column(Float, default=0.0, nullable=False)  # Від 0.0 до 1.0 або % (0.0-100.0)
     last_interaction = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

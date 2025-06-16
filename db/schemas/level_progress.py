@@ -16,6 +16,9 @@ class LevelProgressBase(BaseModel):
     words_learned: conint(ge=0) = Field(
         0, description="Кількість вивчених слів на цьому рівні (невід’ємне число)"
     )
+    words_total: conint(ge=0) = Field(
+        0, description="Загальна кількість слів на цьому рівні (невід’ємне число)"
+    )
     accuracy: confloat(ge=0.0, le=1.0) = Field(
         0.0, description="Точність відповідей (від 0.0 до 1.0)"
     )
@@ -40,6 +43,9 @@ class LevelProgressUpdate(BaseModel):
 
     words_learned: Optional[conint(ge=0)] = Field(
         None, description="Оновлене значення для кількості вивчених слів"
+    )
+    words_total: Optional[conint(ge=0)] = Field(
+        None, description="Оновлене значення для загальної кількості слів"
     )
     accuracy: Optional[confloat(ge=0.0, le=1.0)] = Field(
         None, description="Оновлене значення для точності відповідей"
