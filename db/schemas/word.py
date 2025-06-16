@@ -32,6 +32,9 @@ class WordBase(BaseModel):
     example: Optional[constr(max_length=512)] = Field(
         None, description="Приклад вживання слова — генерується GPT"
     )
+    level: Optional[constr(max_length=8)] = Field(
+        None, description="CEFR рівень слова (A1, A2, B1, B2, C1, C2) — генерується GPT"
+    )
 
 
 class WordCreate(WordBase):
@@ -66,6 +69,7 @@ class WordUpdate(BaseModel):
     example: Optional[constr(max_length=512)] = Field(
         None, description="Оновлений приклад вживання"
     )
+    level: Optional[constr(max_length=8)] = Field(None, description="Оновлений CEFR рівень слова")
 
 
 class WordRead(WordBase):

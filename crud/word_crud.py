@@ -38,6 +38,7 @@ class WordCRUD:
             lang_from=obj_in.lang_from,
             lang_to=obj_in.lang_to,
             example=obj_in.example,
+            level=obj_in.level,
             created_at=datetime.now(timezone.utc),
             deleted_at=None,
         )

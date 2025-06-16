@@ -24,6 +24,7 @@ class Word(Base):
     lang_from = Column(String(10), nullable=False)
     lang_to = Column(String(10), nullable=False)
     example = Column(String(512), nullable=True)
+    level = Column(String(8), nullable=True, comment="CEFR рівень слова: A1, A2, B1...")
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
