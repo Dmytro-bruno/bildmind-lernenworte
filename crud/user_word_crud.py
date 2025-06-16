@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
 
+from core.services.level_progress_service import LevelProgressService
 from openapi.db.models.user_word import UserWord
 from openapi.db.schemas.user_word import UserWordCreate, UserWordUpdate
 
@@ -46,6 +47,7 @@ class UserWordCRUD:
             deleted.updated_at = datetime.now(timezone.utc)
             db.commit()
             db.refresh(deleted)
+            LevelProgressService.update_for_user(user_id=user_id, db=db)
             return deleted
 
         # 3. Немає жодного зв’язку — створюємо новий:
@@ -68,6 +70,7 @@ class UserWordCRUD:
             db.commit()
             db.refresh(db_obj)
             print(f"[CRUD] UserWord created in DB: {db_obj.id}")
+            LevelProgressService.update_for_user(user_id=user_id, db=db)
         except IntegrityError as e:
             print(f"[CRUD] IntegrityError: {str(e)}")
             db.rollback()
@@ -129,6 +132,7 @@ class UserWordCRUD:
         db_obj.updated_at = datetime.now(timezone.utc)
         db.commit()
         db.refresh(db_obj)
+        LevelProgressService.update_for_user(user_id=user_id, db=db)
         return db_obj
 
     @staticmethod
@@ -141,6 +145,7 @@ class UserWordCRUD:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Слово не знайдено.")
         db_obj.deleted_at = datetime.now(timezone.utc)
         db.commit()
+        LevelProgressService.update_for_user(user_id=user_id, db=db)
 
     @staticmethod
     def get_all_for_user(db: Session, user_id: UUID, order_by: Optional[list[Any]] = None) -> list:
