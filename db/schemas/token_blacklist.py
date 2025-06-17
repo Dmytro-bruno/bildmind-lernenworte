@@ -10,9 +10,7 @@ class TokenBlacklistBase(BaseModel):
     Базова схема для внесення JWT у чорний список (Token Blacklist).
     """
 
-    jti: constr(min_length=8, max_length=128) = Field(
-        ..., description="Унікальний ідентифікатор JWT (jti)"
-    )
+    jti: UUID = Field(..., description="Унікальний ідентифікатор JWT (jti)")
     expired_at: datetime = Field(..., description="Час, до якого токен заблоковано (UTC)")
     reason: Optional[constr(max_length=100)] = Field(
         None, description="Причина блокування токена (опціонально)"

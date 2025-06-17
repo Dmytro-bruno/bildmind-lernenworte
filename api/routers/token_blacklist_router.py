@@ -4,8 +4,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
+from core.services.token_blacklist_service import TokenBlacklistService
 from openapi.api.routers.dependencies import get_current_user, get_db
-from openapi.crud.token_blacklist_crud import TokenBlacklistCRUD
 from openapi.db.models.user import User
 from openapi.db.schemas.token_blacklist import (
     TokenBlacklistCreate,
@@ -34,7 +34,7 @@ def create_token_blacklist(
     """
     Додає токен у чорний список для поточного користувача.
     """
-    return TokenBlacklistCRUD.create(db, user_id=current_user.id, obj_in=data)
+    return TokenBlacklistService.create(db, user_id=current_user.id, obj_in=data)
 
 
 @router.get(
@@ -50,7 +50,7 @@ def get_token_blacklist(
     """
     Повертає запис з чорного списку поточного користувача.
     """
-    return TokenBlacklistCRUD.get(db, blacklist_id=blacklist_id, user_id=current_user.id)
+    return TokenBlacklistService.get(db, blacklist_id=blacklist_id, user_id=current_user.id)
 
 
 @router.get(
@@ -65,7 +65,7 @@ def list_token_blacklist(
     """
     Повертає список усіх записів чорного списку користувача.
     """
-    return TokenBlacklistCRUD.get_all(db, user_id=current_user.id)
+    return TokenBlacklistService.get_all(db, user_id=current_user.id)
 
 
 @router.patch(
@@ -80,7 +80,7 @@ def update_token_blacklist(
     """
     Оновлює запис чорного списку.
     """
-    return TokenBlacklistCRUD.update(
+    return TokenBlacklistService.update(
         db, blacklist_id=blacklist_id, user_id=current_user.id, obj_in=data
     )
 
@@ -98,5 +98,5 @@ def delete_token_blacklist(
     """
     Видаляє запис чорного списку (повністю).
     """
-    TokenBlacklistCRUD.delete(db, blacklist_id=blacklist_id, user_id=current_user.id)
+    TokenBlacklistService.delete(db, blacklist_id=blacklist_id, user_id=current_user.id)
     return None
