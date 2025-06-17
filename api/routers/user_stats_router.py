@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from core.services.user_stats_service import UserStatsService
 from openapi.api.routers.dependencies import get_current_user, get_db
-from openapi.crud.user_stats_crud import UserStatsCRUD
 from openapi.db.models.user import User
 from openapi.db.schemas.user_stats import UserStatsCreate, UserStatsRead, UserStatsUpdate
 
@@ -21,7 +21,8 @@ def get_user_stats(
     """
     Повертає статистику лише для поточного користувача.
     """
-    stats = UserStatsCRUD.get_by_user(db, user_id=current_user.id)
+    service = UserStatsService(db)
+    stats = service.get_user_stats(current_user.id)
     if not stats:
         raise HTTPException(status_code=404, detail="Статистика не знайдена")
     return stats
@@ -39,9 +40,10 @@ def create_user_stats(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Створює статистику лише для поточного користувача.
+    Створює або оновлює статистику для поточного користувача.
     """
-    return UserStatsCRUD.create(db, user_id=current_user.id, obj_in=data)
+    service = UserStatsService(db)
+    return service.update_score(current_user.id, delta=data.score or 0)
 
 
 @router.patch("", response_model=UserStatsRead, summary="Оновити статистику поточного користувача")
@@ -51,9 +53,10 @@ def update_user_stats(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Оновлює статистику лише для поточного користувача.
+    Оновлює бал (score) поточного користувача.
     """
-    return UserStatsCRUD.update(db, user_id=current_user.id, obj_in=data)
+    service = UserStatsService(db)
+    return service.update_score(current_user.id, delta=data.score or 0)
 
 
 @router.delete(
@@ -68,5 +71,6 @@ def delete_user_stats(
     """
     М'яко видаляє статистику лише для поточного користувача.
     """
-    UserStatsCRUD.soft_delete(db, user_id=current_user.id)
+    service = UserStatsService(db)
+    service.delete_user_stats(current_user.id)
     return None
