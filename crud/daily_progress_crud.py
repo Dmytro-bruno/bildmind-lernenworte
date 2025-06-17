@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
+from typing import Optional
 from uuid import UUID
 
 from fastapi import HTTPException, status
+from sqlalchemy import Date, cast
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
@@ -91,3 +93,15 @@ class DailyProgressCRUD:
         db_obj = DailyProgressCRUD.get(db, progress_id, user_id)
         db_obj.deleted_at = datetime.now(timezone.utc)
         db.commit()
+
+    @staticmethod
+    def get_by_user_and_date(db: Session, user_id: UUID, date: datetime) -> Optional[DailyProgress]:
+        """
+        Повертає запис прогресу для конкретного користувача на конкретну дату (UTC).
+        """
+        stmt = select(DailyProgress).where(
+            DailyProgress.user_id == user_id,
+            cast(DailyProgress.date, Date) == date.date(),
+            DailyProgress.deleted_at.is_(None),
+        )
+        return db.execute(stmt).scalar_one_or_none()
