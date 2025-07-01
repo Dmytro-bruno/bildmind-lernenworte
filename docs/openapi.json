@@ -2,106 +2,37 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Bildmind Public API",
+    "description": "API для відкритого модуля навчання платформи Bildmind.",
+    "license": {
+      "name": "CC BY-NC-ND 4.0",
+      "url": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
     "version": "0.1.0"
   },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Локальний сервер розробки"
+    }
+  ],
   "paths": {
-    "/healthcheck": {
-      "get": {
-        "summary": "Healthcheck",
-        "operationId": "healthcheck_healthcheck_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
-      }
-    },
-    "/daily_progresss/": {
-      "get": {
-        "tags": [
-          "DailyProgress"
-        ],
-        "summary": "Read All",
-        "operationId": "read_all_daily_progresss__get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "skip",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 0,
-              "title": "Skip"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 100,
-              "title": "Limit"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/DailyProgressRead-Output"
-                  },
-                  "title": "Response Read All Daily Progresss  Get"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
+    "/auth/register": {
       "post": {
         "tags": [
-          "DailyProgress"
+          "Auth"
         ],
-        "summary": "Create",
-        "operationId": "create_daily_progresss__post",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
+        "summary": "Реєстрація нового користувача",
+        "description": "Реєстрація нового користувача, повертає access_token.",
+        "operationId": "register_auth_register_post",
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DailyProgressCreate"
+                "$ref": "#/components/schemas/UserCreate"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -109,7 +40,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DailyProgressRead-Output"
+                  "$ref": "#/components/schemas/TokenResponse"
                 }
               }
             }
@@ -127,36 +58,31 @@
         }
       }
     },
-    "/daily_progresss/{id}": {
-      "get": {
+    "/auth/login": {
+      "post": {
         "tags": [
-          "DailyProgress"
+          "Auth"
         ],
-        "summary": "Read One",
-        "operationId": "read_one_daily_progresss__id__get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Id"
+        "summary": "Логін користувача",
+        "description": "Логін користувача за email та паролем, повертає access_token.",
+        "operationId": "login_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
             }
-          }
-        ],
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DailyProgressRead-Output"
+                  "$ref": "#/components/schemas/TokenResponse"
                 }
               }
             }
@@ -172,26 +98,182 @@
             }
           }
         }
-      },
-      "put": {
+      }
+    },
+    "/auth/logout": {
+      "post": {
         "tags": [
-          "DailyProgress"
+          "Auth"
         ],
-        "summary": "Update",
-        "operationId": "update_daily_progresss__id__put",
+        "summary": "Вихід користувача",
+        "description": "Вихід користувача. Токен додається у чорний список.",
+        "operationId": "logout_auth_logout_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/daily-progress": {
+      "get": {
+        "tags": [
+          "Daily Progress"
+        ],
+        "summary": "Отримати всі записи прогресу для поточного користувача",
+        "description": "Повертає список всіх записів прогресу користувача (не видалені).",
+        "operationId": "list_daily_progress_daily_progress_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DailyProgressRead"
+                  },
+                  "type": "array",
+                  "title": "Response List Daily Progress Daily Progress Get"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Daily Progress"
+        ],
+        "summary": "Створити запис щоденного прогресу",
+        "description": "Додає новий запис прогресу для поточного користувача.",
+        "operationId": "create_daily_progress_daily_progress_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DailyProgressCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyProgressRead"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/daily-progress/{progress_id}": {
+      "get": {
+        "tags": [
+          "Daily Progress"
+        ],
+        "summary": "Отримати запис прогресу за id",
+        "description": "Повертає конкретний запис прогресу поточного користувача.",
+        "operationId": "get_daily_progress_daily_progress__progress_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "progress_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "Progress Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyProgressRead"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Daily Progress"
+        ],
+        "summary": "Оновити запис прогресу (partial update)",
+        "description": "Оновлює існуючий запис прогресу (тільки свої).",
+        "operationId": "update_daily_progress_daily_progress__progress_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "progress_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Progress Id"
             }
           }
         ],
@@ -211,10 +293,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DailyProgressRead-Output"
+                  "$ref": "#/components/schemas/DailyProgressRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -230,36 +315,34 @@
       },
       "delete": {
         "tags": [
-          "DailyProgress"
+          "Daily Progress"
         ],
-        "summary": "Delete",
-        "operationId": "delete_daily_progresss__id__delete",
+        "summary": "М'яке видалення запису прогресу",
+        "description": "М'яко видаляє запис прогресу (ставить deleted_at).",
+        "operationId": "delete_daily_progress_daily_progress__progress_id__delete",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "progress_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "Progress Id"
             }
           }
         ],
         "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DailyProgressRead-Output"
-                }
-              }
-            }
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -274,98 +357,69 @@
         }
       }
     },
-    "/gpt_logs/": {
+    "/gpt-logs": {
       "get": {
         "tags": [
-          "GptLogs"
+          "GPT Logs"
         ],
-        "summary": "Read All",
-        "operationId": "read_all_gpt_logs__get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "skip",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 0,
-              "title": "Skip"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 100,
-              "title": "Limit"
-            }
-          }
-        ],
+        "summary": "Отримати всі логи поточного користувача",
+        "description": "Повертає список усіх логів GPT користувача (від нових до старих).",
+        "operationId": "list_gpt_logs_gpt_logs_get",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/GptLogsRead-Output"
+                    "$ref": "#/components/schemas/GPTLogRead"
                   },
-                  "title": "Response Read All Gpt Logs  Get"
+                  "type": "array",
+                  "title": "Response List Gpt Logs Gpt Logs Get"
                 }
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+          "404": {
+            "description": "Not found"
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       },
       "post": {
         "tags": [
-          "GptLogs"
+          "GPT Logs"
         ],
-        "summary": "Create",
-        "operationId": "create_gpt_logs__post",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
+        "summary": "Створити log GPT-запиту",
+        "description": "Додає новий log GPT для поточного користувача.",
+        "operationId": "create_gpt_log_gpt_logs_post",
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GptLogsCreate"
+                "$ref": "#/components/schemas/GPTLogCreate"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GptLogsRead-Output"
+                  "$ref": "#/components/schemas/GPTLogRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -377,29 +431,36 @@
               }
             }
           }
-        }
-      }
-    },
-    "/gpt_logs/{id}": {
-      "get": {
-        "tags": [
-          "GptLogs"
-        ],
-        "summary": "Read One",
-        "operationId": "read_one_gpt_logs__id__get",
+        },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/gpt-logs/{log_id}": {
+      "get": {
+        "tags": [
+          "GPT Logs"
+        ],
+        "summary": "Отримати log за id",
+        "description": "Повертає конкретний log GPT поточного користувача.",
+        "operationId": "get_gpt_log_gpt_logs__log_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "log_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "Log Id"
             }
           }
         ],
@@ -409,10 +470,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GptLogsRead-Output"
+                  "$ref": "#/components/schemas/GPTLogRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -426,25 +490,27 @@
           }
         }
       },
-      "put": {
+      "patch": {
         "tags": [
-          "GptLogs"
+          "GPT Logs"
         ],
-        "summary": "Update",
-        "operationId": "update_gpt_logs__id__put",
+        "summary": "Оновити log GPT (partial update)",
+        "description": "Оновлює log GPT (доступно тільки автору).",
+        "operationId": "update_gpt_log_gpt_logs__log_id__patch",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "log_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "Log Id"
             }
           }
         ],
@@ -453,7 +519,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GptLogsUpdate"
+                "$ref": "#/components/schemas/GPTLogUpdate"
               }
             }
           }
@@ -464,10 +530,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GptLogsRead-Output"
+                  "$ref": "#/components/schemas/GPTLogRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -483,36 +552,34 @@
       },
       "delete": {
         "tags": [
-          "GptLogs"
+          "GPT Logs"
         ],
-        "summary": "Delete",
-        "operationId": "delete_gpt_logs__id__delete",
+        "summary": "Видалити log GPT",
+        "description": "Видаляє log GPT поточного користувача.",
+        "operationId": "delete_gpt_log_gpt_logs__log_id__delete",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "log_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "Log Id"
             }
           }
         ],
         "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GptLogsRead-Output"
-                }
-              }
-            }
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -527,98 +594,69 @@
         }
       }
     },
-    "/level_progresss/": {
+    "/level-progress": {
       "get": {
         "tags": [
-          "LevelProgress"
+          "Level Progress"
         ],
-        "summary": "Read All",
-        "operationId": "read_all_level_progresss__get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "skip",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 0,
-              "title": "Skip"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 100,
-              "title": "Limit"
-            }
-          }
-        ],
+        "summary": "Отримати всі записи прогресу по рівнях",
+        "description": "Повертає список всіх записів прогресу по рівнях користувача.",
+        "operationId": "list_level_progress_level_progress_get",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/LevelProgressRead-Output"
+                    "$ref": "#/components/schemas/LevelProgressRead"
                   },
-                  "title": "Response Read All Level Progresss  Get"
+                  "type": "array",
+                  "title": "Response List Level Progress Level Progress Get"
                 }
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+          "404": {
+            "description": "Not found"
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       },
       "post": {
         "tags": [
-          "LevelProgress"
+          "Level Progress"
         ],
-        "summary": "Create",
-        "operationId": "create_level_progresss__post",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
+        "summary": "Створити запис прогресу по рівню",
+        "description": "Додає новий запис прогресу по рівню для поточного користувача.",
+        "operationId": "create_level_progress_level_progress_post",
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/LevelProgressCreate"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LevelProgressRead-Output"
+                  "$ref": "#/components/schemas/LevelProgressRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -630,29 +668,36 @@
               }
             }
           }
-        }
-      }
-    },
-    "/level_progresss/{id}": {
-      "get": {
-        "tags": [
-          "LevelProgress"
-        ],
-        "summary": "Read One",
-        "operationId": "read_one_level_progresss__id__get",
+        },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/level-progress/{progress_id}": {
+      "get": {
+        "tags": [
+          "Level Progress"
+        ],
+        "summary": "Отримати запис прогресу по рівню за id",
+        "description": "Повертає конкретний запис прогресу по рівню поточного користувача.",
+        "operationId": "get_level_progress_level_progress__progress_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "progress_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "Progress Id"
             }
           }
         ],
@@ -662,10 +707,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LevelProgressRead-Output"
+                  "$ref": "#/components/schemas/LevelProgressRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -679,25 +727,27 @@
           }
         }
       },
-      "put": {
+      "patch": {
         "tags": [
-          "LevelProgress"
+          "Level Progress"
         ],
-        "summary": "Update",
-        "operationId": "update_level_progresss__id__put",
+        "summary": "Оновити запис прогресу по рівню",
+        "description": "Оновлює існуючий запис прогресу по рівню (partial update).",
+        "operationId": "update_level_progress_level_progress__progress_id__patch",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "progress_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "Progress Id"
             }
           }
         ],
@@ -717,10 +767,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LevelProgressRead-Output"
+                  "$ref": "#/components/schemas/LevelProgressRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -736,36 +789,34 @@
       },
       "delete": {
         "tags": [
-          "LevelProgress"
+          "Level Progress"
         ],
-        "summary": "Delete",
-        "operationId": "delete_level_progresss__id__delete",
+        "summary": "Видалити запис прогресу по рівню",
+        "description": "Видаляє запис прогресу по рівню (тільки свої).",
+        "operationId": "delete_level_progress_level_progress__progress_id__delete",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "progress_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "Progress Id"
             }
           }
         ],
         "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LevelProgressRead-Output"
-                }
-              }
-            }
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -780,98 +831,67 @@
         }
       }
     },
-    "/test_sessions/": {
+    "/test-sessions": {
       "get": {
         "tags": [
-          "TestSession"
+          "Test Sessions"
         ],
-        "summary": "Read All",
-        "operationId": "read_all_test_sessions__get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "skip",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 0,
-              "title": "Skip"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 100,
-              "title": "Limit"
-            }
-          }
-        ],
+        "summary": "Отримати всі сесії тестування користувача",
+        "operationId": "list_test_sessions_test_sessions_get",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TestSessionRead-Output"
+                    "$ref": "#/components/schemas/TestSessionRead"
                   },
-                  "title": "Response Read All Test Sessions  Get"
+                  "type": "array",
+                  "title": "Response List Test Sessions Test Sessions Get"
                 }
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+          "404": {
+            "description": "Not found"
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       },
       "post": {
         "tags": [
-          "TestSession"
+          "Test Sessions"
         ],
-        "summary": "Create",
-        "operationId": "create_test_sessions__post",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
+        "summary": "Створити сесію тестування",
+        "operationId": "create_test_session_test_sessions_post",
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/TestSessionCreate"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestSessionRead-Output"
+                  "$ref": "#/components/schemas/TestSessionRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -883,29 +903,35 @@
               }
             }
           }
-        }
-      }
-    },
-    "/test_sessions/{id}": {
-      "get": {
-        "tags": [
-          "TestSession"
-        ],
-        "summary": "Read One",
-        "operationId": "read_one_test_sessions__id__get",
+        },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/test-sessions/{session_id}": {
+      "get": {
+        "tags": [
+          "Test Sessions"
+        ],
+        "summary": "Отримати сесію тестування за id",
+        "operationId": "get_test_session_test_sessions__session_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "session_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "Session Id"
             }
           }
         ],
@@ -915,10 +941,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestSessionRead-Output"
+                  "$ref": "#/components/schemas/TestSessionRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -932,25 +961,26 @@
           }
         }
       },
-      "put": {
+      "patch": {
         "tags": [
-          "TestSession"
+          "Test Sessions"
         ],
-        "summary": "Update",
-        "operationId": "update_test_sessions__id__put",
+        "summary": "Оновити сесію тестування",
+        "operationId": "update_test_session_test_sessions__session_id__patch",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "session_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "Session Id"
             }
           }
         ],
@@ -970,10 +1000,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TestSessionRead-Output"
+                  "$ref": "#/components/schemas/TestSessionRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -989,36 +1022,33 @@
       },
       "delete": {
         "tags": [
-          "TestSession"
+          "Test Sessions"
         ],
-        "summary": "Delete",
-        "operationId": "delete_test_sessions__id__delete",
+        "summary": "Видалити сесію тестування (soft-delete)",
+        "operationId": "delete_test_session_test_sessions__session_id__delete",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "session_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "Session Id"
             }
           }
         ],
         "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TestSessionRead-Output"
-                }
-              }
-            }
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1033,54 +1063,79 @@
         }
       }
     },
-    "/token_blacklists/": {
-      "get": {
+    "/test-sessions/start": {
+      "post": {
         "tags": [
-          "TokenBlacklist"
+          "Test Sessions"
         ],
-        "summary": "Read All",
-        "operationId": "read_all_token_blacklists__get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "skip",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 0,
-              "title": "Skip"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 100,
-              "title": "Limit"
-            }
-          }
-        ],
+        "summary": "Старт тест-сесії (10 пар слів для тесту)",
+        "operationId": "start_test_session_test_sessions_start_post",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/TokenBlacklistRead-Output"
+                    "additionalProperties": true,
+                    "type": "object"
                   },
-                  "title": "Response Read All Token Blacklists  Get"
+                  "type": "array",
+                  "title": "Response Start Test Session Test Sessions Start Post"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/test-sessions/answer": {
+      "post": {
+        "tags": [
+          "Test Sessions"
+        ],
+        "summary": "Відправити відповідь по слову",
+        "operationId": "answer_word_test_sessions_answer_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "word_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Word Id"
+            }
+          },
+          {
+            "name": "is_correct",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean",
+              "title": "Is Correct"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1093,38 +1148,160 @@
             }
           }
         }
+      }
+    },
+    "/test-sessions/finish": {
+      "post": {
+        "tags": [
+          "Test Sessions"
+        ],
+        "summary": "Завершити тест-сесію та записати результат",
+        "operationId": "finish_test_session_test_sessions_finish_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start_time",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "title": "Start Time"
+            }
+          },
+          {
+            "name": "end_time",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "title": "End Time"
+            }
+          },
+          {
+            "name": "words_total",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Words Total"
+            }
+          },
+          {
+            "name": "correct",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Correct"
+            }
+          },
+          {
+            "name": "test_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "default",
+              "title": "Test Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestSessionRead"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/token-blacklist": {
+      "get": {
+        "tags": [
+          "Token Blacklist"
+        ],
+        "summary": "Отримати всі записи чорного списку користувача",
+        "description": "Повертає список усіх записів чорного списку користувача.",
+        "operationId": "list_token_blacklist_token_blacklist_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TokenBlacklistRead"
+                  },
+                  "type": "array",
+                  "title": "Response List Token Blacklist Token Blacklist Get"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       },
       "post": {
         "tags": [
-          "TokenBlacklist"
+          "Token Blacklist"
         ],
-        "summary": "Create",
-        "operationId": "create_token_blacklists__post",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
+        "summary": "Додати токен у чорний список",
+        "description": "Додає токен у чорний список для поточного користувача.",
+        "operationId": "create_token_blacklist_token_blacklist_post",
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/TokenBlacklistCreate"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TokenBlacklistRead-Output"
+                  "$ref": "#/components/schemas/TokenBlacklistRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1136,29 +1313,36 @@
               }
             }
           }
-        }
-      }
-    },
-    "/token_blacklists/{id}": {
-      "get": {
-        "tags": [
-          "TokenBlacklist"
-        ],
-        "summary": "Read One",
-        "operationId": "read_one_token_blacklists__id__get",
+        },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/token-blacklist/{blacklist_id}": {
+      "get": {
+        "tags": [
+          "Token Blacklist"
+        ],
+        "summary": "Отримати запис з чорного списку за id",
+        "description": "Повертає запис з чорного списку поточного користувача.",
+        "operationId": "get_token_blacklist_token_blacklist__blacklist_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "blacklist_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "Blacklist Id"
             }
           }
         ],
@@ -1168,10 +1352,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TokenBlacklistRead-Output"
+                  "$ref": "#/components/schemas/TokenBlacklistRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1185,25 +1372,27 @@
           }
         }
       },
-      "put": {
+      "patch": {
         "tags": [
-          "TokenBlacklist"
+          "Token Blacklist"
         ],
-        "summary": "Update",
-        "operationId": "update_token_blacklists__id__put",
+        "summary": "Оновити запис чорного списку",
+        "description": "Оновлює запис чорного списку.",
+        "operationId": "update_token_blacklist_token_blacklist__blacklist_id__patch",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "blacklist_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "Blacklist Id"
             }
           }
         ],
@@ -1223,10 +1412,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TokenBlacklistRead-Output"
+                  "$ref": "#/components/schemas/TokenBlacklistRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1242,36 +1434,34 @@
       },
       "delete": {
         "tags": [
-          "TokenBlacklist"
+          "Token Blacklist"
         ],
-        "summary": "Delete",
-        "operationId": "delete_token_blacklists__id__delete",
+        "summary": "Видалити запис чорного списку",
+        "description": "Видаляє запис чорного списку (повністю).",
+        "operationId": "delete_token_blacklist_token_blacklist__blacklist_id__delete",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "blacklist_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "Blacklist Id"
             }
           }
         ],
         "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TokenBlacklistRead-Output"
-                }
-              }
-            }
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1286,132 +1476,62 @@
         }
       }
     },
-    "/users/": {
+    "/users": {
       "get": {
         "tags": [
-          "User"
+          "Users"
         ],
-        "summary": "Read All",
-        "operationId": "read_all_users__get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "skip",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 0,
-              "title": "Skip"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 100,
-              "title": "Limit"
-            }
-          }
-        ],
+        "summary": "Отримати всіх користувачів",
+        "description": "Повертає всіх активних користувачів (тільки адміну).",
+        "operationId": "list_users_users_get",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/UserRead-Output"
+                    "$ref": "#/components/schemas/UserRead"
                   },
-                  "title": "Response Read All Users  Get"
+                  "type": "array",
+                  "title": "Response List Users Users Get"
                 }
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "User"
-        ],
-        "summary": "Create",
-        "operationId": "create_users__post",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UserCreate"
-              }
-            }
+          "404": {
+            "description": "Not found"
           }
         },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserRead-Output"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/users/{id}": {
-      "get": {
-        "tags": [
-          "User"
-        ],
-        "summary": "Read One",
-        "operationId": "read_one_users__id__get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/users/{user_id}": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Отримати користувача за id",
+        "description": "Повертає користувача по id (себе або тільки адміну).",
+        "operationId": "get_user_users__user_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "user_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "User Id"
             }
           }
         ],
@@ -1421,10 +1541,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserRead-Output"
+                  "$ref": "#/components/schemas/UserRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1438,25 +1561,27 @@
           }
         }
       },
-      "put": {
+      "patch": {
         "tags": [
-          "User"
+          "Users"
         ],
-        "summary": "Update",
-        "operationId": "update_users__id__put",
+        "summary": "Оновити користувача",
+        "description": "Оновлює профіль користувача (тільки свій або адміну).",
+        "operationId": "update_user_endpoint_users__user_id__patch",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "user_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "User Id"
             }
           }
         ],
@@ -1476,10 +1601,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserRead-Output"
+                  "$ref": "#/components/schemas/UserRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1495,36 +1623,34 @@
       },
       "delete": {
         "tags": [
-          "User"
+          "Users"
         ],
-        "summary": "Delete",
-        "operationId": "delete_users__id__delete",
+        "summary": "Видалити користувача (soft-delete)",
+        "description": "М'яко видаляє користувача (тільки себе або адміну).",
+        "operationId": "delete_user_endpoint_users__user_id__delete",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "user_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "User Id"
             }
           }
         ],
         "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserRead-Output"
-                }
-              }
-            }
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1539,98 +1665,65 @@
         }
       }
     },
-    "/user_settingss/": {
+    "/user-settings": {
       "get": {
         "tags": [
-          "UserSettings"
+          "User Settings"
         ],
-        "summary": "Read All",
-        "operationId": "read_all_user_settingss__get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "skip",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 0,
-              "title": "Skip"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 100,
-              "title": "Limit"
-            }
-          }
-        ],
+        "summary": "Отримати налаштування поточного користувача",
+        "description": "Повертає налаштування лише для поточного користувача.",
+        "operationId": "get_user_settings_user_settings_get",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/UserSettingsRead-Output"
-                  },
-                  "title": "Response Read All User Settingss  Get"
+                  "$ref": "#/components/schemas/UserSettingsRead"
                 }
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+          "404": {
+            "description": "Not found"
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       },
       "post": {
         "tags": [
-          "UserSettings"
+          "User Settings"
         ],
-        "summary": "Create",
-        "operationId": "create_user_settingss__post",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
+        "summary": "Створити налаштування для поточного користувача",
+        "description": "Створює налаштування лише для поточного користувача.",
+        "operationId": "create_user_settings_user_settings_post",
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UserSettingsCreate"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserSettingsRead-Output"
+                  "$ref": "#/components/schemas/UserSettingsRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1642,86 +1735,50 @@
               }
             }
           }
-        }
-      }
-    },
-    "/user_settingss/{id}": {
-      "get": {
-        "tags": [
-          "UserSettings"
-        ],
-        "summary": "Read One",
-        "operationId": "read_one_user_settingss__id__get",
+        },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserSettingsRead-Output"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
+        ]
       },
-      "put": {
+      "delete": {
         "tags": [
-          "UserSettings"
+          "User Settings"
         ],
-        "summary": "Update",
-        "operationId": "update_user_settingss__id__put",
+        "summary": "Видалити (soft) налаштування поточного користувача",
+        "description": "М'яко видаляє налаштування лише для поточного користувача.",
+        "operationId": "delete_user_settings_user_settings_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "User Settings"
         ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Id"
-            }
-          }
-        ],
+        "summary": "Оновити налаштування поточного користувача",
+        "description": "Оновлює налаштування лише для поточного користувача.",
+        "operationId": "update_user_settings_user_settings_patch",
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UserSettingsUpdate"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -1729,10 +1786,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserSettingsRead-Output"
+                  "$ref": "#/components/schemas/UserSettingsRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1744,146 +1804,73 @@
               }
             }
           }
-        }
-      },
-      "delete": {
-        "tags": [
-          "UserSettings"
-        ],
-        "summary": "Delete",
-        "operationId": "delete_user_settingss__id__delete",
+        },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserSettingsRead-Output"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
+        ]
       }
     },
-    "/user_statss/": {
+    "/user-stats": {
       "get": {
         "tags": [
-          "UserStats"
+          "User Stats"
         ],
-        "summary": "Read All",
-        "operationId": "read_all_user_statss__get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "skip",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 0,
-              "title": "Skip"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 100,
-              "title": "Limit"
-            }
-          }
-        ],
+        "summary": "Отримати статистику поточного користувача",
+        "description": "Повертає статистику лише для поточного користувача.",
+        "operationId": "get_user_stats_user_stats_get",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/UserStatsRead-Output"
-                  },
-                  "title": "Response Read All User Statss  Get"
+                  "$ref": "#/components/schemas/UserStatsRead"
                 }
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+          "404": {
+            "description": "Not found"
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       },
       "post": {
         "tags": [
-          "UserStats"
+          "User Stats"
         ],
-        "summary": "Create",
-        "operationId": "create_user_statss__post",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
+        "summary": "Створити статистику для поточного користувача",
+        "description": "Створює або оновлює статистику для поточного користувача.",
+        "operationId": "create_user_stats_user_stats_post",
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UserStatsCreate"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserStatsRead-Output"
+                  "$ref": "#/components/schemas/UserStatsRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1895,86 +1882,50 @@
               }
             }
           }
-        }
-      }
-    },
-    "/user_statss/{id}": {
-      "get": {
-        "tags": [
-          "UserStats"
-        ],
-        "summary": "Read One",
-        "operationId": "read_one_user_statss__id__get",
+        },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserStatsRead-Output"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
+        ]
       },
-      "put": {
+      "delete": {
         "tags": [
-          "UserStats"
+          "User Stats"
         ],
-        "summary": "Update",
-        "operationId": "update_user_statss__id__put",
+        "summary": "Видалити (soft) статистику поточного користувача",
+        "description": "М'яко видаляє статистику лише для поточного користувача.",
+        "operationId": "delete_user_stats_user_stats_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "User Stats"
         ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Id"
-            }
-          }
-        ],
+        "summary": "Оновити статистику поточного користувача",
+        "description": "Оновлює бал (score) поточного користувача.",
+        "operationId": "update_user_stats_user_stats_patch",
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UserStatsUpdate"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -1982,10 +1933,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserStatsRead-Output"
+                  "$ref": "#/components/schemas/UserStatsRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -1997,146 +1951,77 @@
               }
             }
           }
-        }
-      },
-      "delete": {
-        "tags": [
-          "UserStats"
-        ],
-        "summary": "Delete",
-        "operationId": "delete_user_statss__id__delete",
+        },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserStatsRead-Output"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
+        ]
       }
     },
-    "/user_words/": {
+    "/user-words": {
       "get": {
         "tags": [
-          "UserWord"
+          "User Words"
         ],
-        "summary": "Read All",
-        "operationId": "read_all_user_words__get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "skip",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 0,
-              "title": "Skip"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 100,
-              "title": "Limit"
-            }
-          }
-        ],
+        "summary": "Отримати всі слова зі словника користувача",
+        "description": "Повертає всі слова зі словника поточного користувача.",
+        "operationId": "list_user_words_user_words_get",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/UserWordRead-Output"
+                    "$ref": "#/components/schemas/UserWordRead"
                   },
-                  "title": "Response Read All User Words  Get"
+                  "type": "array",
+                  "title": "Response List User Words User Words Get"
                 }
               }
             }
           },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
+          "404": {
+            "description": "Not found"
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       },
       "post": {
         "tags": [
-          "UserWord"
+          "User Words"
         ],
-        "summary": "Create",
-        "operationId": "create_user_words__post",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
+        "summary": "Додати слово у словник користувача (створює глобальне слово, якщо треба)",
+        "description": "Додає нове слово до словника користувача (і створює глобальне слово, якщо треба).",
+        "operationId": "create_user_word_user_words_post",
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UserWordCreate"
+                "$ref": "#/components/schemas/WordCreate"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserWordRead-Output"
+                  "$ref": "#/components/schemas/UserWordRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -2148,29 +2033,36 @@
               }
             }
           }
-        }
-      }
-    },
-    "/user_words/{id}": {
-      "get": {
-        "tags": [
-          "UserWord"
-        ],
-        "summary": "Read One",
-        "operationId": "read_one_user_words__id__get",
+        },
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/user-words/{user_word_id}": {
+      "get": {
+        "tags": [
+          "User Words"
+        ],
+        "summary": "Отримати слово зі словника за id",
+        "description": "Повертає слово зі словника за id (user_word_id).",
+        "operationId": "get_user_word_user_words__user_word_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "user_word_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "User Word Id"
             }
           }
         ],
@@ -2180,10 +2072,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserWordRead-Output"
+                  "$ref": "#/components/schemas/UserWordRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -2197,25 +2092,27 @@
           }
         }
       },
-      "put": {
+      "patch": {
         "tags": [
-          "UserWord"
+          "User Words"
         ],
-        "summary": "Update",
-        "operationId": "update_user_words__id__put",
+        "summary": "Оновити слово зі словника",
+        "description": "Оновлює слово зі словника поточного користувача.",
+        "operationId": "update_user_word_user_words__user_word_id__patch",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "user_word_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "User Word Id"
             }
           }
         ],
@@ -2235,10 +2132,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserWordRead-Output"
+                  "$ref": "#/components/schemas/UserWordRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -2254,36 +2154,34 @@
       },
       "delete": {
         "tags": [
-          "UserWord"
+          "User Words"
         ],
-        "summary": "Delete",
-        "operationId": "delete_user_words__id__delete",
+        "summary": "Видалити слово зі словника (soft-delete)",
+        "description": "М'яко видаляє слово зі словника поточного користувача.",
+        "operationId": "delete_user_word_user_words__user_word_id__delete",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "user_word_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "User Word Id"
             }
           }
         ],
         "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserWordRead-Output"
-                }
-              }
-            }
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -2298,76 +2196,17 @@
         }
       }
     },
-    "/words/": {
-      "get": {
-        "tags": [
-          "Word"
-        ],
-        "summary": "Read All",
-        "operationId": "read_all_words__get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "skip",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 0,
-              "title": "Skip"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 100,
-              "title": "Limit"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/WordRead-Output"
-                  },
-                  "title": "Response Read All Words  Get"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
+    "/words": {
       "post": {
         "tags": [
-          "Word"
+          "Words"
         ],
-        "summary": "Create",
-        "operationId": "create_words__post",
+        "summary": "Додати слово у словник",
+        "description": "Додає нове слово до загального словника.",
+        "operationId": "create_word_words_post",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "requestBody": {
@@ -2381,15 +2220,89 @@
           }
         },
         "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WordRead"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Words"
+        ],
+        "summary": "Отримати всі слова із словника",
+        "description": "Повертає всі не видалені слова (можна фільтрувати через skip/limit).",
+        "operationId": "list_words_words_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Пропустити N записів",
+              "default": 0,
+              "title": "Skip"
+            },
+            "description": "Пропустити N записів"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Скільки записів повернути",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "Скільки записів повернути"
+          }
+        ],
+        "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WordRead-Output"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WordRead"
+                  },
+                  "title": "Response List Words Words Get"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -2404,26 +2317,28 @@
         }
       }
     },
-    "/words/{id}": {
+    "/words/{word_id}": {
       "get": {
         "tags": [
-          "Word"
+          "Words"
         ],
-        "summary": "Read One",
-        "operationId": "read_one_words__id__get",
+        "summary": "Отримати слово за id",
+        "description": "Повертає слово по id.",
+        "operationId": "get_word_words__word_id__get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "word_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "Word Id"
             }
           }
         ],
@@ -2433,10 +2348,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WordRead-Output"
+                  "$ref": "#/components/schemas/WordRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -2450,25 +2368,27 @@
           }
         }
       },
-      "put": {
+      "patch": {
         "tags": [
-          "Word"
+          "Words"
         ],
-        "summary": "Update",
-        "operationId": "update_words__id__put",
+        "summary": "Оновити слово у словнику",
+        "description": "Оновлює слово у словнику (тільки адмін).",
+        "operationId": "update_word_words__word_id__patch",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "word_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "Word Id"
             }
           }
         ],
@@ -2488,10 +2408,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WordRead-Output"
+                  "$ref": "#/components/schemas/WordRead"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -2507,36 +2430,34 @@
       },
       "delete": {
         "tags": [
-          "Word"
+          "Words"
         ],
-        "summary": "Delete",
-        "operationId": "delete_words__id__delete",
+        "summary": "Видалити слово зі словника (soft-delete)",
+        "description": "М'яко видаляє слово зі словника (тільки адмін).",
+        "operationId": "delete_word_words__word_id__delete",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "HTTPBearer": []
           }
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "word_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
-              "title": "Id"
+              "format": "uuid",
+              "title": "Word Id"
             }
           }
         ],
         "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WordRead-Output"
-                }
-              }
-            }
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not found"
           },
           "422": {
             "description": "Validation Error",
@@ -2545,6 +2466,44 @@
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/healthcheck": {
+      "get": {
+        "tags": [
+          "Monitoring"
+        ],
+        "summary": "Перевірка стану БД",
+        "operationId": "healthcheck_healthcheck_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ping": {
+      "get": {
+        "tags": [
+          "Monitoring"
+        ],
+        "summary": "Перевірка чи живий API",
+        "operationId": "ping_ping_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           }
@@ -2572,171 +2531,330 @@
     "schemas": {
       "DailyProgressCreate": {
         "properties": {
-          "user": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserRead-Input"
-              },
-              {
-                "type": "null"
-              }
-            ]
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Date",
+            "description": "Дата дня, для якого зберігається прогрес (у форматі ISO 8601)"
+          },
+          "words_learned": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Words Learned",
+            "description": "Кількість вивчених слів за цей день (невід’ємне число)",
+            "default": 0
+          },
+          "words_reviewed": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Words Reviewed",
+            "description": "Кількість повторених слів за цей день (невід’ємне число)",
+            "default": 0
+          },
+          "test_sessions_passed": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Test Sessions Passed",
+            "description": "Кількість пройдених тестових сесій за цей день (невід’ємне число)",
+            "default": 0
           }
         },
         "type": "object",
-        "title": "DailyProgressCreate"
+        "required": [
+          "date"
+        ],
+        "title": "DailyProgressCreate",
+        "description": "Схема для створення запису щоденного прогресу.\nuser_id визначається із токена автентифікації."
       },
-      "DailyProgressRead-Input": {
+      "DailyProgressRead": {
         "properties": {
-          "user": {
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Date",
+            "description": "Дата дня, для якого зберігається прогрес (у форматі ISO 8601)"
+          },
+          "words_learned": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Words Learned",
+            "description": "Кількість вивчених слів за цей день (невід’ємне число)",
+            "default": 0
+          },
+          "words_reviewed": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Words Reviewed",
+            "description": "Кількість повторених слів за цей день (невід’ємне число)",
+            "default": 0
+          },
+          "test_sessions_passed": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Test Sessions Passed",
+            "description": "Кількість пройдених тестових сесій за цей день (невід’ємне число)",
+            "default": 0
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "Унікальний ідентифікатор запису"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id",
+            "description": "Ідентифікатор користувача"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Дата та час створення запису"
+          },
+          "updated_at": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Input"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
-            ]
-          }
-        },
-        "type": "object",
-        "title": "DailyProgressRead"
-      },
-      "DailyProgressRead-Output": {
-        "properties": {
-          "user": {
+            ],
+            "title": "Updated At",
+            "description": "Дата та час останнього оновлення запису"
+          },
+          "deleted_at": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Output"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Deleted At",
+            "description": "Дата видалення (якщо запис видалено)"
           }
         },
         "type": "object",
-        "title": "DailyProgressRead"
+        "required": [
+          "date",
+          "id",
+          "user_id",
+          "created_at"
+        ],
+        "title": "DailyProgressRead",
+        "description": "Схема для читання запису прогресу (те, що повертається у відповідях API)."
       },
       "DailyProgressUpdate": {
         "properties": {
-          "user": {
+          "words_learned": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Input"
+                "type": "integer",
+                "minimum": 0.0
               },
               {
                 "type": "null"
               }
-            ]
-          }
-        },
-        "type": "object",
-        "title": "DailyProgressUpdate"
-      },
-      "GptLogsCreate": {
-        "properties": {
-          "user": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserRead-Input"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            ],
+            "title": "Words Learned",
+            "description": "Оновлене значення для вивчених слів"
           },
-          "word": {
+          "words_reviewed": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/WordRead-Input"
+                "type": "integer",
+                "minimum": 0.0
               },
               {
                 "type": "null"
               }
-            ]
-          }
-        },
-        "type": "object",
-        "title": "GptLogsCreate"
-      },
-      "GptLogsRead-Input": {
-        "properties": {
-          "user": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserRead-Input"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            ],
+            "title": "Words Reviewed",
+            "description": "Оновлене значення для повторених слів"
           },
-          "word": {
+          "test_sessions_passed": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/WordRead-Input"
+                "type": "integer",
+                "minimum": 0.0
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Test Sessions Passed",
+            "description": "Оновлене значення для тестових сесій"
           }
         },
         "type": "object",
-        "title": "GptLogsRead"
+        "title": "DailyProgressUpdate",
+        "description": "Схема для часткового оновлення прогресу (тільки ті поля, які змінюються)."
       },
-      "GptLogsRead-Output": {
+      "GPTLogCreate": {
         "properties": {
-          "user": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserRead-Output"
-              },
-              {
-                "type": "null"
-              }
-            ]
+          "prompt": {
+            "type": "string",
+            "title": "Prompt",
+            "description": "Вхідний запит (prompt), який відправив користувач"
           },
-          "word": {
+          "response": {
+            "type": "string",
+            "title": "Response",
+            "description": "Відповідь GPT на запит користувача"
+          },
+          "token_usage": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Token Usage",
+            "description": "Кількість використаних токенів за сесію",
+            "default": 0
+          },
+          "word_id": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/WordRead-Output"
+                "type": "string",
+                "format": "uuid"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Word Id",
+            "description": "ID слова, до якого належить запит (опціонально)"
           }
         },
         "type": "object",
-        "title": "GptLogsRead"
+        "required": [
+          "prompt",
+          "response"
+        ],
+        "title": "GPTLogCreate",
+        "description": "Схема для створення лог-запису GPT.\nuser_id визначається із токена автентифікації."
       },
-      "GptLogsUpdate": {
+      "GPTLogRead": {
         "properties": {
-          "user": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserRead-Input"
-              },
-              {
-                "type": "null"
-              }
-            ]
+          "prompt": {
+            "type": "string",
+            "title": "Prompt",
+            "description": "Вхідний запит (prompt), який відправив користувач"
           },
-          "word": {
+          "response": {
+            "type": "string",
+            "title": "Response",
+            "description": "Відповідь GPT на запит користувача"
+          },
+          "token_usage": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Token Usage",
+            "description": "Кількість використаних токенів за сесію",
+            "default": 0
+          },
+          "word_id": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/WordRead-Input"
+                "type": "string",
+                "format": "uuid"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Word Id",
+            "description": "ID слова, до якого належить запит (опціонально)"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "Унікальний ідентифікатор лог-запису"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id",
+            "description": "ID користувача, який зробив запит"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp",
+            "description": "Час створення лог-запису (UTC)"
           }
         },
         "type": "object",
-        "title": "GptLogsUpdate"
+        "required": [
+          "prompt",
+          "response",
+          "id",
+          "user_id",
+          "timestamp"
+        ],
+        "title": "GPTLogRead",
+        "description": "Схема для читання лог-запису GPT (API-відповідь)."
+      },
+      "GPTLogUpdate": {
+        "properties": {
+          "prompt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt",
+            "description": "Оновлений prompt"
+          },
+          "response": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response",
+            "description": "Оновлена відповідь GPT"
+          },
+          "token_usage": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token Usage",
+            "description": "Оновлена кількість використаних токенів"
+          },
+          "word_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Word Id",
+            "description": "Оновлений word_id"
+          }
+        },
+        "type": "object",
+        "title": "GPTLogUpdate",
+        "description": "Схема для оновлення лог-запису GPT (допускаються лише окремі поля)."
       },
       "HTTPValidationError": {
         "properties": {
@@ -2753,867 +2871,1414 @@
       },
       "LevelProgressCreate": {
         "properties": {
-          "user": {
+          "word_level": {
+            "type": "string",
+            "maxLength": 8,
+            "minLength": 2,
+            "title": "Word Level",
+            "description": "Рівень володіння словником (наприклад: 'A1', 'B2', 'C2')"
+          },
+          "words_learned": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Words Learned",
+            "description": "Кількість вивчених слів на цьому рівні (невід’ємне число)",
+            "default": 0
+          },
+          "words_total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Words Total",
+            "description": "Загальна кількість слів на цьому рівні (невід’ємне число)",
+            "default": 0
+          },
+          "accuracy": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Accuracy",
+            "description": "Точність відповідей (від 0.0 до 1.0)",
+            "default": 0.0
+          },
+          "last_interaction": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Input"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Last Interaction",
+            "description": "Час останньої взаємодії з цим рівнем"
           }
         },
         "type": "object",
-        "title": "LevelProgressCreate"
+        "required": [
+          "word_level"
+        ],
+        "title": "LevelProgressCreate",
+        "description": "Схема для створення запису прогресу за рівнем.\nuser_id визначається із токена автентифікації."
       },
-      "LevelProgressRead-Input": {
+      "LevelProgressRead": {
         "properties": {
-          "user": {
+          "word_level": {
+            "type": "string",
+            "maxLength": 8,
+            "minLength": 2,
+            "title": "Word Level",
+            "description": "Рівень володіння словником (наприклад: 'A1', 'B2', 'C2')"
+          },
+          "words_learned": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Words Learned",
+            "description": "Кількість вивчених слів на цьому рівні (невід’ємне число)",
+            "default": 0
+          },
+          "words_total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Words Total",
+            "description": "Загальна кількість слів на цьому рівні (невід’ємне число)",
+            "default": 0
+          },
+          "accuracy": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Accuracy",
+            "description": "Точність відповідей (від 0.0 до 1.0)",
+            "default": 0.0
+          },
+          "last_interaction": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Input"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
-            ]
-          }
-        },
-        "type": "object",
-        "title": "LevelProgressRead"
-      },
-      "LevelProgressRead-Output": {
-        "properties": {
-          "user": {
+            ],
+            "title": "Last Interaction",
+            "description": "Час останньої взаємодії з цим рівнем"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "Унікальний ідентифікатор запису"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id",
+            "description": "ID користувача, якому належить запис"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Дата створення запису"
+          },
+          "updated_at": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Output"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Updated At",
+            "description": "Дата останнього оновлення запису"
           }
         },
         "type": "object",
-        "title": "LevelProgressRead"
+        "required": [
+          "word_level",
+          "id",
+          "user_id",
+          "created_at"
+        ],
+        "title": "LevelProgressRead",
+        "description": "Схема для читання запису прогресу за рівнем (API-відповідь)."
       },
       "LevelProgressUpdate": {
         "properties": {
-          "user": {
+          "words_learned": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Input"
+                "type": "integer",
+                "minimum": 0.0
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Words Learned",
+            "description": "Оновлене значення для кількості вивчених слів"
+          },
+          "words_total": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Words Total",
+            "description": "Оновлене значення для загальної кількості слів"
+          },
+          "accuracy": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accuracy",
+            "description": "Оновлене значення для точності відповідей"
+          },
+          "last_interaction": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Interaction",
+            "description": "Оновлене значення для часу останньої взаємодії"
           }
         },
         "type": "object",
-        "title": "LevelProgressUpdate"
+        "title": "LevelProgressUpdate",
+        "description": "Схема для часткового оновлення прогресу (PATCH/PUT)."
+      },
+      "LoginRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email",
+            "description": "Email користувача"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password",
+            "description": "Пароль користувача"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest"
       },
       "TestSessionCreate": {
         "properties": {
-          "user": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserRead-Input"
-              },
-              {
-                "type": "null"
-              }
-            ]
+          "start_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start Time",
+            "description": "Час початку тестової сесії (UTC)"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "End Time",
+            "description": "Час завершення тестової сесії (UTC)"
+          },
+          "words_total": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Words Total",
+            "description": "Загальна кількість слів у тесті (мінімум 1)"
+          },
+          "correct": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Correct",
+            "description": "Кількість правильних відповідей (невід’ємне число)"
+          },
+          "test_type": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Test Type",
+            "description": "Тип тестової сесії (наприклад, 'default', 'listening', 'writing')",
+            "default": "default"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id",
+            "description": "ID користувача, якому належить сесія"
           }
         },
         "type": "object",
-        "title": "TestSessionCreate"
+        "required": [
+          "start_time",
+          "end_time",
+          "words_total",
+          "correct",
+          "user_id"
+        ],
+        "title": "TestSessionCreate",
+        "description": "Схема для створення сесії тестування.\nuser_id визначається із токена автентифікації."
       },
-      "TestSessionRead-Input": {
+      "TestSessionRead": {
         "properties": {
-          "user": {
+          "start_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start Time",
+            "description": "Час початку тестової сесії (UTC)"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "End Time",
+            "description": "Час завершення тестової сесії (UTC)"
+          },
+          "words_total": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Words Total",
+            "description": "Загальна кількість слів у тесті (мінімум 1)"
+          },
+          "correct": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Correct",
+            "description": "Кількість правильних відповідей (невід’ємне число)"
+          },
+          "test_type": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Test Type",
+            "description": "Тип тестової сесії (наприклад, 'default', 'listening', 'writing')",
+            "default": "default"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "Унікальний ідентифікатор сесії тестування"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id",
+            "description": "ID користувача, якому належить сесія"
+          },
+          "deleted_at": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Input"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Deleted At",
+            "description": "Дата видалення (якщо запис видалено)"
           }
         },
         "type": "object",
-        "title": "TestSessionRead"
-      },
-      "TestSessionRead-Output": {
-        "properties": {
-          "user": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserRead-Output"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "type": "object",
-        "title": "TestSessionRead"
+        "required": [
+          "start_time",
+          "end_time",
+          "words_total",
+          "correct",
+          "id",
+          "user_id"
+        ],
+        "title": "TestSessionRead",
+        "description": "Схема для читання сесії тестування (API-відповідь)."
       },
       "TestSessionUpdate": {
         "properties": {
-          "user": {
+          "end_time": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Input"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "End Time",
+            "description": "Оновлений час завершення тесту"
+          },
+          "words_total": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Words Total",
+            "description": "Оновлене значення загальної кількості слів"
+          },
+          "correct": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correct",
+            "description": "Оновлене значення кількості правильних відповідей"
+          },
+          "test_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Test Type",
+            "description": "Оновлений тип тестової сесії"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At",
+            "description": "Дата видалення (якщо запис видалено)"
           }
         },
         "type": "object",
-        "title": "TestSessionUpdate"
+        "title": "TestSessionUpdate",
+        "description": "Схема для часткового оновлення сесії тестування."
       },
       "TokenBlacklistCreate": {
         "properties": {
-          "user": {
+          "jti": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Jti",
+            "description": "Унікальний ідентифікатор JWT (jti)"
+          },
+          "expired_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expired At",
+            "description": "Час, до якого токен заблоковано (UTC)"
+          },
+          "reason": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Input"
+                "type": "string",
+                "maxLength": 100
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Reason",
+            "description": "Причина блокування токена (опціонально)"
           }
         },
         "type": "object",
-        "title": "TokenBlacklistCreate"
+        "required": [
+          "jti",
+          "expired_at"
+        ],
+        "title": "TokenBlacklistCreate",
+        "description": "Схема для додавання токена у чорний список.\nuser_id визначається із токена автентифікації."
       },
-      "TokenBlacklistRead-Input": {
+      "TokenBlacklistRead": {
         "properties": {
-          "user": {
+          "jti": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Jti",
+            "description": "Унікальний ідентифікатор JWT (jti)"
+          },
+          "expired_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expired At",
+            "description": "Час, до якого токен заблоковано (UTC)"
+          },
+          "reason": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Input"
+                "type": "string",
+                "maxLength": 100
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Reason",
+            "description": "Причина блокування токена (опціонально)"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "Унікальний ідентифікатор запису"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id",
+            "description": "ID користувача, якому належить токен"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Час додавання токена у чорний список (UTC)"
           }
         },
         "type": "object",
-        "title": "TokenBlacklistRead"
-      },
-      "TokenBlacklistRead-Output": {
-        "properties": {
-          "user": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserRead-Output"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "type": "object",
-        "title": "TokenBlacklistRead"
+        "required": [
+          "jti",
+          "expired_at",
+          "id",
+          "user_id",
+          "created_at"
+        ],
+        "title": "TokenBlacklistRead",
+        "description": "Схема для читання запису з чорного списку (API-відповідь)."
       },
       "TokenBlacklistUpdate": {
         "properties": {
-          "user": {
+          "expired_at": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Input"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Expired At",
+            "description": "Оновлений час блокування"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason",
+            "description": "Оновлена причина блокування токена"
           }
         },
         "type": "object",
-        "title": "TokenBlacklistUpdate"
+        "title": "TokenBlacklistUpdate",
+        "description": "Схема для оновлення запису у чорному списку (якщо це потрібно)."
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token",
+            "description": "JWT access token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "description": "Тип токену (bearer)",
+            "default": "bearer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token"
+        ],
+        "title": "TokenResponse"
       },
       "UserCreate": {
         "properties": {
-          "daily_progress": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/DailyProgressRead-Input"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Daily Progress"
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "Унікальний email користувача"
           },
-          "level_progress": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/LevelProgressRead-Input"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Level Progress"
+          "username": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 2,
+            "title": "Username",
+            "description": "Унікальне ім'я користувача (логін)"
           },
-          "user_words": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/UserWordRead-Input"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "User Words"
-          },
-          "user_settings": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserSettingsRead-Input"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "user_stats": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserStatsRead-Input"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "test_sessions": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/TestSessionRead-Input"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Test Sessions"
-          },
-          "gpt_logs": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/GptLogsRead-Input"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Gpt Logs"
-          },
-          "token_blacklist": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/TokenBlacklistRead-Input"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Token Blacklist"
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password",
+            "description": "Пароль користувача (мінімум 8 символів)"
           }
         },
         "type": "object",
-        "title": "UserCreate"
+        "required": [
+          "email",
+          "username",
+          "password"
+        ],
+        "title": "UserCreate",
+        "description": "Схема для реєстрації користувача."
       },
-      "UserRead-Input": {
+      "UserRead": {
         "properties": {
-          "daily_progress": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "Унікальний email користувача"
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 2,
+            "title": "Username",
+            "description": "Унікальне ім'я користувача (логін)"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "Унікальний ідентифікатор користувача"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "description": "Чи активний користувач"
+          },
+          "is_superuser": {
+            "type": "boolean",
+            "title": "Is Superuser",
+            "description": "Чи є користувач адміністратором"
+          },
+          "created_at": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/DailyProgressRead-Input"
-                },
-                "type": "array"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Daily Progress"
+            "title": "Created At",
+            "description": "Дата реєстрації"
           },
-          "level_progress": {
+          "updated_at": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/LevelProgressRead-Input"
-                },
-                "type": "array"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Level Progress"
+            "title": "Updated At",
+            "description": "Дата останнього оновлення"
           },
-          "user_words": {
+          "deleted_at": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/UserWordRead-Input"
-                },
-                "type": "array"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "User Words"
-          },
-          "user_settings": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserSettingsRead-Input"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "user_stats": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserStatsRead-Input"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "test_sessions": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/TestSessionRead-Input"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Test Sessions"
-          },
-          "gpt_logs": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/GptLogsRead-Input"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Gpt Logs"
-          },
-          "token_blacklist": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/TokenBlacklistRead-Input"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Token Blacklist"
+            "title": "Deleted At",
+            "description": "Дата видалення користувача (якщо є)"
           }
         },
         "type": "object",
-        "title": "UserRead"
-      },
-      "UserRead-Output": {
-        "properties": {
-          "daily_progress": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/DailyProgressRead-Output"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Daily Progress"
-          },
-          "level_progress": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/LevelProgressRead-Output"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Level Progress"
-          },
-          "user_words": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/UserWordRead-Output"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "User Words"
-          },
-          "user_settings": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserSettingsRead-Output"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "user_stats": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserStatsRead-Output"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "test_sessions": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/TestSessionRead-Output"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Test Sessions"
-          },
-          "gpt_logs": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/GptLogsRead-Output"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Gpt Logs"
-          },
-          "token_blacklist": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/TokenBlacklistRead-Output"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Token Blacklist"
-          }
-        },
-        "type": "object",
-        "title": "UserRead"
+        "required": [
+          "email",
+          "username",
+          "id",
+          "is_active",
+          "is_superuser"
+        ],
+        "title": "UserRead",
+        "description": "Схема для читання (API-відповіді) користувача."
       },
       "UserSettingsCreate": {
         "properties": {
-          "user": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserRead-Input"
-              },
-              {
-                "type": "null"
-              }
-            ]
+          "interface_language": {
+            "type": "string",
+            "maxLength": 10,
+            "minLength": 2,
+            "title": "Interface Language",
+            "description": "Мова інтерфейсу (напр. 'en', 'uk', 'de')",
+            "default": "en"
+          },
+          "native_language": {
+            "type": "string",
+            "maxLength": 10,
+            "minLength": 2,
+            "title": "Native Language",
+            "description": "Рідна мова користувача (ISO-код)",
+            "default": "uk"
+          },
+          "target_language": {
+            "type": "string",
+            "maxLength": 10,
+            "minLength": 2,
+            "title": "Target Language",
+            "description": "Мова, яку користувач вивчає (ISO-код)",
+            "default": "de"
+          },
+          "notifications_enabled": {
+            "type": "boolean",
+            "title": "Notifications Enabled",
+            "description": "Чи увімкнені повідомлення",
+            "default": true
+          },
+          "dark_mode": {
+            "type": "boolean",
+            "title": "Dark Mode",
+            "description": "Чи увімкнений темний режим",
+            "default": false
           }
         },
         "type": "object",
-        "title": "UserSettingsCreate"
+        "title": "UserSettingsCreate",
+        "description": "Схема для створення налаштувань користувача.\nuser_id визначається із токена автентифікації."
       },
-      "UserSettingsRead-Input": {
+      "UserSettingsRead": {
         "properties": {
-          "user": {
+          "interface_language": {
+            "type": "string",
+            "maxLength": 10,
+            "minLength": 2,
+            "title": "Interface Language",
+            "description": "Мова інтерфейсу (напр. 'en', 'uk', 'de')",
+            "default": "en"
+          },
+          "native_language": {
+            "type": "string",
+            "maxLength": 10,
+            "minLength": 2,
+            "title": "Native Language",
+            "description": "Рідна мова користувача (ISO-код)",
+            "default": "uk"
+          },
+          "target_language": {
+            "type": "string",
+            "maxLength": 10,
+            "minLength": 2,
+            "title": "Target Language",
+            "description": "Мова, яку користувач вивчає (ISO-код)",
+            "default": "de"
+          },
+          "notifications_enabled": {
+            "type": "boolean",
+            "title": "Notifications Enabled",
+            "description": "Чи увімкнені повідомлення",
+            "default": true
+          },
+          "dark_mode": {
+            "type": "boolean",
+            "title": "Dark Mode",
+            "description": "Чи увімкнений темний режим",
+            "default": false
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "Унікальний ідентифікатор налаштувань"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id",
+            "description": "ID користувача, якому належать налаштування"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Дата створення запису"
+          },
+          "updated_at": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Input"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
-            ]
-          }
-        },
-        "type": "object",
-        "title": "UserSettingsRead"
-      },
-      "UserSettingsRead-Output": {
-        "properties": {
-          "user": {
+            ],
+            "title": "Updated At",
+            "description": "Дата останнього оновлення"
+          },
+          "deleted_at": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Output"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Deleted At",
+            "description": "Дата видалення (якщо налаштування видалено)"
           }
         },
         "type": "object",
-        "title": "UserSettingsRead"
+        "required": [
+          "id",
+          "user_id",
+          "created_at"
+        ],
+        "title": "UserSettingsRead",
+        "description": "Схема для читання налаштувань користувача (API-відповідь)."
       },
       "UserSettingsUpdate": {
         "properties": {
-          "user": {
+          "interface_language": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Input"
+                "type": "string",
+                "maxLength": 10,
+                "minLength": 2
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Interface Language",
+            "description": "Нова мова інтерфейсу"
+          },
+          "native_language": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Native Language",
+            "description": "Нова рідна мова"
+          },
+          "target_language": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Language",
+            "description": "Нова мова, яку вивчає користувач"
+          },
+          "notifications_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notifications Enabled",
+            "description": "Оновлений стан повідомлень"
+          },
+          "dark_mode": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dark Mode",
+            "description": "Оновлений стан темного режиму"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At",
+            "description": "Дата видалення налаштувань"
           }
         },
         "type": "object",
-        "title": "UserSettingsUpdate"
+        "title": "UserSettingsUpdate",
+        "description": "Схема для часткового оновлення налаштувань користувача."
       },
       "UserStatsCreate": {
         "properties": {
-          "user": {
+          "words_learned": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Words Learned",
+            "description": "Загальна кількість вивчених слів",
+            "default": 0
+          },
+          "words_in_progress": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Words In Progress",
+            "description": "Кількість слів у процесі вивчення",
+            "default": 0
+          },
+          "test_sessions_total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Test Sessions Total",
+            "description": "Загальна кількість тестових сесій",
+            "default": 0
+          },
+          "test_sessions_passed": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Test Sessions Passed",
+            "description": "Кількість успішно пройдених тестових сесій",
+            "default": 0
+          },
+          "last_active": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Input"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Last Active",
+            "description": "Час останньої активності користувача"
           }
         },
         "type": "object",
-        "title": "UserStatsCreate"
+        "title": "UserStatsCreate",
+        "description": "Схема для створення статистики користувача.\nuser_id визначається із токена автентифікації."
       },
-      "UserStatsRead-Input": {
+      "UserStatsRead": {
         "properties": {
-          "user": {
+          "words_learned": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Words Learned",
+            "description": "Загальна кількість вивчених слів",
+            "default": 0
+          },
+          "words_in_progress": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Words In Progress",
+            "description": "Кількість слів у процесі вивчення",
+            "default": 0
+          },
+          "test_sessions_total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Test Sessions Total",
+            "description": "Загальна кількість тестових сесій",
+            "default": 0
+          },
+          "test_sessions_passed": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Test Sessions Passed",
+            "description": "Кількість успішно пройдених тестових сесій",
+            "default": 0
+          },
+          "last_active": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Input"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
-            ]
-          }
-        },
-        "type": "object",
-        "title": "UserStatsRead"
-      },
-      "UserStatsRead-Output": {
-        "properties": {
-          "user": {
+            ],
+            "title": "Last Active",
+            "description": "Час останньої активності користувача"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "Унікальний ідентифікатор статистики"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id",
+            "description": "ID користувача, до якого належить статистика"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Дата створення запису"
+          },
+          "updated_at": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Output"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Updated At",
+            "description": "Дата останнього оновлення"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At",
+            "description": "Дата видалення (якщо застосовано)"
           }
         },
         "type": "object",
-        "title": "UserStatsRead"
+        "required": [
+          "id",
+          "user_id",
+          "created_at"
+        ],
+        "title": "UserStatsRead",
+        "description": "Схема для читання статистики користувача (API-відповідь)."
       },
       "UserStatsUpdate": {
         "properties": {
-          "user": {
+          "words_learned": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Input"
+                "type": "integer",
+                "minimum": 0.0
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Words Learned",
+            "description": "Оновлена кількість вивчених слів"
+          },
+          "words_in_progress": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Words In Progress",
+            "description": "Оновлена кількість слів у процесі"
+          },
+          "test_sessions_total": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Test Sessions Total",
+            "description": "Оновлена кількість тестових сесій"
+          },
+          "test_sessions_passed": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Test Sessions Passed",
+            "description": "Оновлена кількість успішних тестів"
+          },
+          "last_active": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Active",
+            "description": "Оновлений час останньої активності"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At",
+            "description": "Дата видалення статистики (якщо застосовано)"
           }
         },
         "type": "object",
-        "title": "UserStatsUpdate"
+        "title": "UserStatsUpdate",
+        "description": "Схема для часткового оновлення статистики користувача."
       },
       "UserUpdate": {
         "properties": {
-          "daily_progress": {
+          "email": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/DailyProgressRead-Input"
-                },
-                "type": "array"
+                "type": "string",
+                "format": "email"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Daily Progress"
+            "title": "Email",
+            "description": "Оновлений email"
           },
-          "level_progress": {
+          "username": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/LevelProgressRead-Input"
-                },
-                "type": "array"
+                "type": "string",
+                "maxLength": 150,
+                "minLength": 2
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Level Progress"
+            "title": "Username",
+            "description": "Оновлений логін"
           },
-          "user_words": {
+          "password": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/UserWordRead-Input"
-                },
-                "type": "array"
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 8
               },
               {
                 "type": "null"
               }
             ],
-            "title": "User Words"
-          },
-          "user_settings": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserSettingsRead-Input"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "user_stats": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserStatsRead-Input"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "test_sessions": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/TestSessionRead-Input"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Test Sessions"
-          },
-          "gpt_logs": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/GptLogsRead-Input"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Gpt Logs"
-          },
-          "token_blacklist": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/TokenBlacklistRead-Input"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Token Blacklist"
+            "title": "Password",
+            "description": "Новий пароль"
           }
         },
         "type": "object",
-        "title": "UserUpdate"
+        "title": "UserUpdate",
+        "description": "Схема для оновлення даних користувача."
       },
-      "UserWordCreate": {
+      "UserWordRead": {
         "properties": {
-          "user": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserRead-Input"
-              },
-              {
-                "type": "null"
-              }
-            ]
+          "word_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Word Id",
+            "description": "ID слова в загальному словнику"
           },
-          "word": {
+          "level": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Level",
+            "description": "Поточний рівень слова для користувача (інтервал або стадія)",
+            "default": 0
+          },
+          "next_review_date": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/WordRead-Input"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Next Review Date",
+            "description": "Дата наступного повторення слова (UTC)"
+          },
+          "last_review_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Review Date",
+            "description": "Дата останнього повторення слова (UTC)"
+          },
+          "is_learned": {
+            "type": "boolean",
+            "title": "Is Learned",
+            "description": "Чи вважається слово вивченим",
+            "default": false
+          },
+          "success_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Success Count",
+            "description": "Кількість вдалих відповідей користувача по слову",
+            "default": 0
+          },
+          "fail_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Fail Count",
+            "description": "Кількість невдалих спроб по слову",
+            "default": 0
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note",
+            "description": "Нотатка до слова (опціонально)"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "Унікальний ідентифікатор зв'язку користувача і слова"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id",
+            "description": "ID користувача, якому належить слово"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Дата додавання слова до словника"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At",
+            "description": "Дата останнього оновлення"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At",
+            "description": "Дата видалення зв'язку (якщо застосовано)"
           }
         },
         "type": "object",
-        "title": "UserWordCreate"
-      },
-      "UserWordRead-Input": {
-        "properties": {
-          "user": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserRead-Input"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "word": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/WordRead-Input"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "type": "object",
-        "title": "UserWordRead"
-      },
-      "UserWordRead-Output": {
-        "properties": {
-          "user": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/UserRead-Output"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "word": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/WordRead-Output"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "type": "object",
-        "title": "UserWordRead"
+        "required": [
+          "word_id",
+          "id",
+          "user_id",
+          "created_at"
+        ],
+        "title": "UserWordRead",
+        "description": "Схема для читання зв'язку користувача і слова (API-відповідь)."
       },
       "UserWordUpdate": {
         "properties": {
-          "user": {
+          "level": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/UserRead-Input"
+                "type": "integer",
+                "minimum": 0.0
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Level",
+            "description": "Оновлений рівень слова"
           },
-          "word": {
+          "next_review_date": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/WordRead-Input"
+                "type": "string",
+                "format": "date-time"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Next Review Date",
+            "description": "Оновлена дата наступного повторення"
+          },
+          "last_review_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Review Date",
+            "description": "Оновлена дата останнього повторення"
+          },
+          "is_learned": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Learned",
+            "description": "Оновлений статус вивченості слова"
+          },
+          "success_count": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Success Count",
+            "description": "Оновлена кількість успішних відповідей"
+          },
+          "fail_count": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fail Count",
+            "description": "Оновлена кількість невдалих спроб"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note",
+            "description": "Оновлена нотатка до слова"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At",
+            "description": "Дата видалення зв'язку (якщо застосовано)"
           }
         },
         "type": "object",
-        "title": "UserWordUpdate"
+        "title": "UserWordUpdate",
+        "description": "Схема для часткового оновлення статусу слова у користувача."
       },
       "ValidationError": {
         "properties": {
@@ -3650,150 +4315,347 @@
       },
       "WordCreate": {
         "properties": {
-          "user_words": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/UserWordRead-Input"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "User Words"
+          "base_form": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Base Form",
+            "description": "Початкова форма слова (без артикля)"
           },
-          "gpt_logs": {
+          "lang_from": {
+            "type": "string",
+            "maxLength": 10,
+            "minLength": 2,
+            "title": "Lang From",
+            "description": "Мова оригіналу (ISO-код, напр. 'de', 'en')"
+          },
+          "lang_to": {
+            "type": "string",
+            "maxLength": 10,
+            "minLength": 2,
+            "title": "Lang To",
+            "description": "Мова перекладу (ISO-код, напр. 'uk', 'en')"
+          },
+          "article": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/GptLogsRead-Input"
-                },
-                "type": "array"
+                "type": "string",
+                "maxLength": 10
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Gpt Logs"
+            "title": "Article",
+            "description": "Артикль (напр., 'der', 'die', 'das') — генерується GPT"
+          },
+          "base_and_article": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base And Article",
+            "description": "Форма слова з артиклем — генерується GPT"
+          },
+          "translation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Translation",
+            "description": "Переклад слова — генерується GPT"
+          },
+          "example": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 512
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Example",
+            "description": "Приклад вживання слова — генерується GPT"
+          },
+          "level": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Level",
+            "description": "CEFR рівень слова (A1, A2, B1, B2, C1, C2) — генерується GPT"
           }
         },
         "type": "object",
-        "title": "WordCreate"
+        "required": [
+          "base_form",
+          "lang_from",
+          "lang_to"
+        ],
+        "title": "WordCreate",
+        "description": "Схема для створення слова у словнику."
       },
-      "WordRead-Input": {
+      "WordRead": {
         "properties": {
-          "user_words": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/UserWordRead-Input"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "User Words"
+          "base_form": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Base Form",
+            "description": "Початкова форма слова (без артикля)"
           },
-          "gpt_logs": {
+          "lang_from": {
+            "type": "string",
+            "maxLength": 10,
+            "minLength": 2,
+            "title": "Lang From",
+            "description": "Мова оригіналу (ISO-код, напр. 'de', 'en')"
+          },
+          "lang_to": {
+            "type": "string",
+            "maxLength": 10,
+            "minLength": 2,
+            "title": "Lang To",
+            "description": "Мова перекладу (ISO-код, напр. 'uk', 'en')"
+          },
+          "article": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/GptLogsRead-Input"
-                },
-                "type": "array"
+                "type": "string",
+                "maxLength": 10
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Gpt Logs"
+            "title": "Article",
+            "description": "Артикль (напр., 'der', 'die', 'das') — генерується GPT"
+          },
+          "base_and_article": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base And Article",
+            "description": "Форма слова з артиклем — генерується GPT"
+          },
+          "translation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Translation",
+            "description": "Переклад слова — генерується GPT"
+          },
+          "example": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 512
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Example",
+            "description": "Приклад вживання слова — генерується GPT"
+          },
+          "level": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Level",
+            "description": "CEFR рівень слова (A1, A2, B1, B2, C1, C2) — генерується GPT"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "Унікальний ідентифікатор слова"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Дата створення слова"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At",
+            "description": "Дата видалення (якщо застосовано)"
           }
         },
         "type": "object",
-        "title": "WordRead"
-      },
-      "WordRead-Output": {
-        "properties": {
-          "user_words": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/UserWordRead-Output"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "User Words"
-          },
-          "gpt_logs": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/GptLogsRead-Output"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Gpt Logs"
-          }
-        },
-        "type": "object",
-        "title": "WordRead"
+        "required": [
+          "base_form",
+          "lang_from",
+          "lang_to",
+          "id",
+          "created_at"
+        ],
+        "title": "WordRead",
+        "description": "Схема для читання слова (API-відповідь)."
       },
       "WordUpdate": {
         "properties": {
-          "user_words": {
+          "base_form": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/UserWordRead-Input"
-                },
-                "type": "array"
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
               },
               {
                 "type": "null"
               }
             ],
-            "title": "User Words"
+            "title": "Base Form",
+            "description": "Оновлена початкова форма слова"
           },
-          "gpt_logs": {
+          "article": {
             "anyOf": [
               {
-                "items": {
-                  "$ref": "#/components/schemas/GptLogsRead-Input"
-                },
-                "type": "array"
+                "type": "string",
+                "maxLength": 10
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Gpt Logs"
+            "title": "Article",
+            "description": "Оновлений артикль"
+          },
+          "base_and_article": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base And Article",
+            "description": "Оновлена форма слова з артиклем"
+          },
+          "translation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Translation",
+            "description": "Оновлений переклад"
+          },
+          "lang_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang From",
+            "description": "Оновлена мова оригіналу"
+          },
+          "lang_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang To",
+            "description": "Оновлена мова перекладу"
+          },
+          "example": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 512
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Example",
+            "description": "Оновлений приклад вживання"
+          },
+          "level": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Level",
+            "description": "Оновлений CEFR рівень слова"
           }
         },
         "type": "object",
-        "title": "WordUpdate"
+        "title": "WordUpdate",
+        "description": "Схема для часткового оновлення даних слова."
       }
     },
     "securitySchemes": {
-      "OAuth2PasswordBearer": {
-        "type": "oauth2",
-        "flows": {
-          "password": {
-            "scopes": {},
-            "tokenUrl": "auth/login"
-          }
-        }
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
       }
     }
   }

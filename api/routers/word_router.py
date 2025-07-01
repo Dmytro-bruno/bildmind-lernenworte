@@ -35,6 +35,18 @@ def create_word(
     return WordCRUD.create(db, obj_in=data)
 
 
+@router.get("/by-text/{text}", response_model=WordRead, summary="Отримати слово за base_form")
+def get_word_by_text(
+    text: str,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    word = WordCRUD.get_by_base_form(db, text)
+    if not word:
+        raise HTTPException(status_code=404, detail="Слово не знайдено")
+    return word
+
+
 @router.get("", response_model=List[WordRead], summary="Отримати всі слова із словника")
 def list_words(
     skip: int = Query(0, ge=0, description="Пропустити N записів"),

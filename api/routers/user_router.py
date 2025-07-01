@@ -30,6 +30,11 @@ def list_users(
     return get_users(db)
 
 
+@router.get("/me", response_model=UserRead, summary="Отримати поточного користувача")
+def get_current_user_data(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
 @router.get("/{user_id}", response_model=UserRead, summary="Отримати користувача за id")
 def get_user(
     user_id: UUID,
