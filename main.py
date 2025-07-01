@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from openapi.api.routers.auth import router as auth_router
 from openapi.api.routers.daily_progress_router import router as daily_progress_router
@@ -23,6 +24,21 @@ app = FastAPI(
         "name": "CC BY-NC-ND 4.0",
         "url": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
     },
+)
+
+# Додай CORS підтримку одразу після створення app
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:8080",
+        "http://localhost:8081",
+        "http://localhost:8082",
+        "http://127.0.0.1:8080",
+        "http://localhost:5173",
+    ],  # 👈 дозволяє фронтенду
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Підключаєш тільки те, що реалізовано

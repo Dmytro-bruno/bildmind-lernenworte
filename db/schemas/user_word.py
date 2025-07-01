@@ -4,6 +4,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, conint
 
+from .word import WordRead
+
 
 class UserWordBase(BaseModel):
     """
@@ -74,6 +76,7 @@ class UserWordRead(UserWordBase):
     deleted_at: Optional[datetime] = Field(
         None, description="Дата видалення зв'язку (якщо застосовано)"
     )
+    word: WordRead = Field(..., description="Повна інформація про слово")
 
     class Config:
         orm_mode = True

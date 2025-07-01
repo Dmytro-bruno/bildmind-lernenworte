@@ -128,3 +128,7 @@ class WordCRUD:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Слово не знайдено.")
         db_obj.deleted_at = datetime.now(timezone.utc)
         db.commit()
+
+    @staticmethod
+    def get_by_base_form(db: Session, base_form: str) -> Optional[Word]:
+        return db.query(Word).filter(Word.base_form == base_form).first()
