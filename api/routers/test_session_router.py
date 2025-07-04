@@ -84,14 +84,18 @@ def delete_test_session(
 
 @router.post(
     "/start",
-    response_model=List[dict],
     summary="Старт тест-сесії (10 пар слів для тесту)",
 )
 def start_test_session(
+    count: int = 10,
+    force: bool = False,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return TestSessionService.start_test_session(db, current_user.id)
+    result = TestSessionService.start_test_session(
+        db=db, user_id=current_user.id, count=count, force=force
+    )
+    return result
 
 
 @router.post(
@@ -102,6 +106,7 @@ def start_test_session(
 def answer_word(
     word_id: UUID,
     is_correct: bool,
+    is_forced: bool = False,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -111,6 +116,7 @@ def answer_word(
             user_id=current_user.id,
             word_id=word_id,
             is_correct=is_correct,
+            is_forced=is_forced,  # ⬅️ новий параметр
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

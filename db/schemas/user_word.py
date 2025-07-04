@@ -63,6 +63,15 @@ class UserWordUpdate(BaseModel):
         None, description="Дата видалення зв'язку (якщо застосовано)"
     )
 
+    # 🧠 SM-2 поля:
+    easiness_factor: Optional[float] = Field(None, description="Коефіцієнт легкості SM-2")
+    repetition: Optional[int] = Field(
+        None, description="Кількість послідовних успішних повторів SM-2"
+    )
+    interval: Optional[int] = Field(
+        None, description="Інтервал до наступного повторення (у днях) SM-2"
+    )
+
 
 class UserWordRead(UserWordBase):
     """

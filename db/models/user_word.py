@@ -4,11 +4,13 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
+    Float,
     ForeignKey,
     Integer,
     String,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -37,6 +39,23 @@ class UserWord(Base):
         nullable=False,
         index=True,
     )
+    # ───── SM-2 fields ─────
+    easiness_factor = Column(
+        Float,
+        nullable=False,
+        server_default=text("2.5"),
+    )
+    repetition = Column(
+        Integer,
+        nullable=False,
+        server_default=text("0"),
+    )
+    interval = Column(
+        Integer,
+        nullable=False,
+        server_default=text("0"),
+    )
+    # ───────────────────────
     level = Column(Integer, nullable=False, default=0)
     next_review_date = Column(DateTime(timezone=True), nullable=True)
     last_review_date = Column(DateTime(timezone=True), nullable=True)
@@ -58,5 +77,6 @@ class UserWord(Base):
     def __repr__(self):
         return (
             f"<UserWord(id={self.id}, user_id={self.user_id}, word_id={self.word_id}, "
-            f"level={self.level}, is_learned={self.is_learned})>"
+            f"level={self.level}, is_learned={self.is_learned}, "
+            f"ef={self.easiness_factor}, rep={self.repetition}, intv={self.interval})>"
         )
