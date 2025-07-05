@@ -35,6 +35,10 @@ app.add_middleware(
         "http://localhost:8082",
         "http://127.0.0.1:8080",
         "http://localhost:5173",
+        "http://10.0.2.2:8080",  # ✅ Додай це
+        "http://10.0.2.2:5173",  # ✅ І це (якщо фронт працює на цьому порту)
+        "capacitor://localhost",
+        "https://localhost",
     ],  # 👈 дозволяє фронтенду
     allow_credentials=True,
     allow_methods=["*"],
@@ -60,3 +64,16 @@ app.include_router(ping_router)
 @app.get("/openapi")
 def open_root():
     return {"message": "Публічний інтерфейс"}
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(
+        "openapi.main:app",
+        host="0.0.0.0",  # nosec B104
+        port=8000,
+        ssl_keyfile="ssl/key.pem",
+        ssl_certfile="ssl/cert.pem",
+        reload=True,
+    )
