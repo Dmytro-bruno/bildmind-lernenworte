@@ -1,6 +1,6 @@
 import os
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -18,8 +18,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     ENVIRONMENT: str = "development"
 
-    class Config:
-        env_file = os.path.join(BASE_DIR, ".env")
+    model_config = SettingsConfigDict(env_file=os.path.join(BASE_DIR, ".env"))
 
     @property
     def DATABASE_URL(self) -> str:
@@ -31,5 +30,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-print(">>> POSTGRES_HOST:", settings.POSTGRES_HOST)

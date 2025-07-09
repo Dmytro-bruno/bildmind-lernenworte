@@ -1,3 +1,14 @@
+import os
+import sys
+
+# Додаємо /app до sys.path — щоб модуль `core` став доступним
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from openapi.config.settings import Settings
+
+settings = Settings()
+print(">>> POSTGRES_HOST:", settings.POSTGRES_HOST)  # (опційно для дебагу)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -36,7 +47,7 @@ app.add_middleware(
         "http://127.0.0.1:8080",
         "http://localhost:5173",
         "http://10.0.2.2:8080",  # ✅ Додай це
-        "http://10.0.2.2:5173",  # ✅ І це (якщо фронт працює на цьому порту)
+        "http://10.0.2.2:5173",  # ✅ І це (фронт працює на цьому порту)
         "capacitor://localhost",
         "https://localhost",
     ],  # 👈 дозволяє фронтенду
@@ -59,6 +70,11 @@ app.include_router(user_word_router)
 app.include_router(word_router)
 app.include_router(health)
 app.include_router(ping_router)
+
+
+@app.get("/")
+def root():
+    return {"status": "Bildmind API is working!"}
 
 
 @app.get("/openapi")
