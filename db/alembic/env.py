@@ -1,16 +1,19 @@
-# flake8: noqa: E402
 import os
 import sys
 from logging.config import fileConfig
 
 from alembic import context
+
+# 🔽 Додаємо підтримку .env
+from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
-# --- тут не можна нічого робити! ---
+load_dotenv()
 
-# Тільки тепер: модифікуємо sys.path і одразу імпортуємо свої моделі
+# 🔽 Додаємо шлях до проєкту, щоб імпорти моделей працювали
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
+# 🔽 Імпортуємо всі моделі для Alembic
 import openapi.db.models.daily_progress  # noqa: F401
 import openapi.db.models.gpt_logs  # noqa: F401
 import openapi.db.models.level_progress  # noqa: F401
@@ -23,15 +26,24 @@ import openapi.db.models.user_word  # noqa: F401
 import openapi.db.models.word  # noqa: F401
 from openapi.db.base import Base
 
+# Alembic Config
 config = context.config
 
+# ✅ Заміна URL вручну — беремо з ENV, якщо він є
+database_url = os.getenv("DATABASE_URL")
+if database_url:
+    config.set_main_option("sqlalchemy.url", database_url)
+
+# Logging
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+# Target metadata
 target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
+    """Run migrations in 'offline' mode."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
@@ -44,6 +56,7 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    """Run migrations in 'online' mode."""
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
