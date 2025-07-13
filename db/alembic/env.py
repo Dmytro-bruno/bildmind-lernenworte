@@ -24,21 +24,27 @@ import openapi.db.models.user_settings  # noqa: F401
 import openapi.db.models.user_stats  # noqa: F401
 import openapi.db.models.user_word  # noqa: F401
 import openapi.db.models.word  # noqa: F401
+
+# 🔽 Імпортуємо settings і метадані
+from openapi.config.settings import Settings
 from openapi.db.base import Base
 
-# Alembic Config
+# 🔧 Завантажуємо налаштування
+settings = Settings()
+
+# 🔧 Отримуємо URL для підключення до БД
+database_url = settings.DATABASE_URL
+print(">>> Alembic підключається до:", database_url)
+
+# 🔧 Встановлюємо URL у конфіг
 config = context.config
+config.set_main_option("sqlalchemy.url", database_url)
 
-# ✅ Заміна URL вручну — беремо з ENV, якщо він є
-database_url = os.getenv("DATABASE_URL")
-if database_url:
-    config.set_main_option("sqlalchemy.url", database_url)
-
-# Logging
+# 🔧 Логування з alembic.ini
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Target metadata
+# 📦 SQLAlchemy metadata
 target_metadata = Base.metadata
 
 

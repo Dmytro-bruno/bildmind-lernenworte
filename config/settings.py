@@ -18,7 +18,9 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     ENVIRONMENT: str = "development"
 
-    model_config = SettingsConfigDict(env_file=os.path.join(BASE_DIR, ".env"))
+    model_config = SettingsConfigDict(
+        env_file=os.path.join(BASE_DIR, os.getenv("ENV_FILE", ".env"))
+    )
 
     @property
     def DATABASE_URL(self) -> str:
