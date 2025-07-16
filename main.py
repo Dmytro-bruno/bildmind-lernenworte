@@ -30,7 +30,7 @@ app = FastAPI(
     title="Bildmind Public API",
     description="API для відкритого модуля навчання платформи Bildmind.",
     version="0.1.0",
-    servers=[{"url": "http://localhost:8000", "description": "Локальний сервер розробки"}],
+    servers=[{"url": ""}],
     license_info={
         "name": "CC BY-NC-ND 4.0",
         "url": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
@@ -50,6 +50,7 @@ app.add_middleware(
         "http://10.0.2.2:5173",  # ✅ І це (фронт працює на цьому порту)
         "capacitor://localhost",
         "https://localhost",
+        "https://bildmind-api.fly.dev",
     ],  # 👈 дозволяє фронтенду
     allow_credentials=True,
     allow_methods=["*"],
