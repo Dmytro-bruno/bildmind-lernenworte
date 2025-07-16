@@ -9,6 +9,7 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy import inspect  # <-- додаємо імпорт
 
 # revision identifiers, used by Alembic.
 revision: str = "d9f40b01278e"
@@ -19,11 +20,18 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    # Додаємо колонку з дефолтним значенням, щоб уникнути помилки NOT NULL
-    op.add_column(
-        "level_progress",
-        sa.Column("words_total", sa.Integer(), server_default=sa.text("0"), nullable=False),
-    )
+    # Отримуємо актуальні колонки таблиці
+    bind = op.get_bind()
+    inspector = inspect(bind)
+    existing_cols = [c["name"] for c in inspector.get_columns("level_progress")]
+
+    # Додаємо words_total тільки якщо його ще немає
+    if "words_total" not in existing_cols:
+        op.add_column(
+            "level_progress",
+            sa.Column("words_total", sa.Integer(), server_default=sa.text("0"), nullable=False),
+        )
+
     op.add_column(
         "user_words",
         sa.Column("easiness_factor", sa.Float(), server_default=sa.text("2.5"), nullable=False),
